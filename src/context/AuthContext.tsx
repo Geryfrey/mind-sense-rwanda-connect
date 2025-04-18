@@ -1,6 +1,6 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // User types
 export type UserRole = "student" | "admin";
@@ -80,6 +80,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (foundUser) {
             setUser(foundUser);
             localStorage.setItem("varp_user", JSON.stringify(foundUser));
+            
+            // Navigate based on role
+            if (foundUser.role === "admin") {
+              navigate("/admin");
+            } else {
+              navigate("/student");
+            }
+            
             resolve(true);
             return;
           }
@@ -124,6 +132,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(newUser);
         localStorage.setItem("varp_user", JSON.stringify(newUser));
         
+        // Navigate based on role
+        if (role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/student");
+        }
+        
         resolve(true);
       }, 800); // Simulate network delay
     });
@@ -157,11 +172,12 @@ export const useAuth = () => useContext(AuthContext);
 
 // Route guard for protected routes
 export const RequireAuth: React.FC<{
-  children: React.ReactNode;
+  children: React.ReactNode | (({ user }: { user: User }) => React.ReactNode);
   allowedRoles?: UserRole[];
 }> = ({ children, allowedRoles = ["student", "admin"] }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!isLoading) {
@@ -183,6 +199,10 @@ export const RequireAuth: React.FC<{
 
   if (user && !allowedRoles.includes(user.role)) {
     return null;
+  }
+
+  if (typeof children === "function" && user) {
+    return <>{children({ user })}</>;
   }
 
   return <>{children}</>;
