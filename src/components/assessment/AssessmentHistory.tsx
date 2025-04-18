@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { format } from "date-fns";
-import { Download, ChevronDown, ChevronRight, Calendar } from "lucide-react";
+import { Download, ChevronDown, ChevronRight, Calendar, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useML, AssessmentResult } from "@/context/MLContext";
@@ -16,7 +16,7 @@ const AssessmentHistory: React.FC = () => {
   };
 
   // Get emotion with highest score
-  const getPrimaryEmotion = (emotions: { joy: number; sadness: number; anger: number; fear: number }) => {
+  const getPrimaryEmotion = (emotions: { joy: number; sadness: number; anger: number; fear: number; anxiety: number }) => {
     const entries = Object.entries(emotions) as [keyof typeof emotions, number][];
     const [emotion] = entries.reduce((max, current) => 
       current[1] > max[1] ? current : max, entries[0]);
@@ -37,7 +37,7 @@ const AssessmentHistory: React.FC = () => {
     if (assessmentHistory.length === 0) return;
     
     // Create CSV header
-    const header = ["Date", "Text", "Primary Emotion", "Sentiment", "Risk Level"];
+    const header = ["Date", "Text", "Primary Emotion", "Sentiment", "Risk Level", "Risk Factors"];
     
     // Convert assessment data to CSV rows
     const rows = assessmentHistory.map(assessment => {
@@ -46,7 +46,8 @@ const AssessmentHistory: React.FC = () => {
         `"${assessment.text.replace(/"/g, '""')}"`, // Escape quotes in text
         getPrimaryEmotion(assessment.emotions),
         getSentimentDescription(assessment.sentiment),
-        assessment.riskLevel.charAt(0).toUpperCase() + assessment.riskLevel.slice(1)
+        assessment.riskLevel.charAt(0).toUpperCase() + assessment.riskLevel.slice(1),
+        `"${(assessment.riskFactors || []).join(", ")}"`
       ];
     });
     
@@ -137,6 +138,16 @@ const AssessmentHistory: React.FC = () => {
                         >
                           {assessment.riskLevel} risk
                         </span>
+                        
+                        {/* Display critical risk factors if present */}
+                        {assessment.riskFactors && assessment.riskFactors.some(factor => 
+                          factor === 'suicidal ideation' || factor === 'self-harm risk'
+                        ) && (
+                          <span className="inline-flex items-center ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Urgent attention needed
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -159,6 +170,27 @@ const AssessmentHistory: React.FC = () => {
                       </p>
                     </div>
                     
+                    {/* Display risk factors */}
+                    {assessment.riskFactors && assessment.riskFactors.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium mb-2">Risk factors identified:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {assessment.riskFactors.map((factor, index) => (
+                            <span key={index} className={`text-xs px-2 py-1 rounded-full ${
+                              assessment.riskLevel === 'high' ? 'bg-red-100 text-red-800' : 
+                              assessment.riskLevel === 'moderate' ? 'bg-yellow-100 text-yellow-800' : 
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {factor === 'suicidal ideation' || factor === 'self-harm risk' ? (
+                                <AlertTriangle className="inline-block h-3 w-3 mr-1" />
+                              ) : null}
+                              {factor}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <h4 className="text-sm font-medium mb-2">Emotions:</h4>
@@ -174,7 +206,8 @@ const AssessmentHistory: React.FC = () => {
                                   className={`h-1.5 rounded-full ${
                                     emotion === 'joy' ? 'bg-green-500' : 
                                     emotion === 'sadness' ? 'bg-blue-500' : 
-                                    emotion === 'anger' ? 'bg-red-500' : 'bg-yellow-500'
+                                    emotion === 'anger' ? 'bg-red-500' :
+                                    emotion === 'anxiety' ? 'bg-purple-500' : 'bg-yellow-500'
                                   }`}
                                   style={{ width: `${Math.round(score * 100)}%` }}
                                 ></div>

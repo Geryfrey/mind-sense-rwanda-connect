@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useML, AssessmentResult } from "@/context/MLContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 
 const AssessmentForm: React.FC = () => {
   const [text, setText] = useState("");
@@ -45,21 +45,21 @@ const AssessmentForm: React.FC = () => {
   };
 
   // Feedback messages based on risk level
-  const getFeedbackMessage = (riskLevel: 'low' | 'moderate' | 'high') => {
+  const getFeedbackMessage = (riskLevel: 'low' | 'moderate' | 'high', riskFactors: string[]) => {
     switch(riskLevel) {
       case 'low':
         return "Your message suggests you're managing well overall. Remember that maintaining mental wellness is an ongoing practice.";
       case 'moderate':
-        return "It sounds like you're experiencing some challenges. Consider reaching out to a friend or counselor to discuss what you're going through.";
+        return `Based on your message, we've identified some concerns (${riskFactors.join(", ")}). Consider reaching out to a friend or counselor to discuss what you're going through.`;
       case 'high':
-        return "Your message indicates significant distress. Please consider speaking with a mental health professional soon - support is available.";
+        return `Your message indicates significant distress related to ${riskFactors.join(", ")}. Please consider speaking with a mental health professional soon - support is available.`;
       default:
         return "Thank you for sharing. Regular check-ins on your mental health are important.";
     }
   };
 
   // Get emotion with highest score
-  const getPrimaryEmotion = (emotions: { joy: number; sadness: number; anger: number; fear: number }) => {
+  const getPrimaryEmotion = (emotions: { joy: number; sadness: number; anger: number; fear: number; anxiety: number }) => {
     const entries = Object.entries(emotions) as [keyof typeof emotions, number][];
     const [emotion] = entries.reduce((max, current) => 
       current[1] > max[1] ? current : max, entries[0]);
@@ -167,7 +167,28 @@ const AssessmentForm: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm">{getFeedbackMessage(result.riskLevel)}</p>
+                  <p className="text-sm">{getFeedbackMessage(result.riskLevel, result.riskFactors)}</p>
+                  
+                  {/* Display risk factors */}
+                  {result.riskFactors.length > 0 && (
+                    <div className="mt-3">
+                      <h4 className="text-sm font-medium mb-1">Factors identified:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {result.riskFactors.map((factor, index) => (
+                          <span key={index} className={`text-xs px-2 py-1 rounded-full inline-flex items-center ${
+                            result.riskLevel === 'high' ? 'bg-red-100 text-red-800' : 
+                            result.riskLevel === 'moderate' ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {factor === 'suicidal ideation' || factor === 'self-harm risk' ? (
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                            ) : null}
+                            {factor}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -185,7 +206,8 @@ const AssessmentForm: React.FC = () => {
                           className={`h-2.5 rounded-full ${
                             emotion === 'joy' ? 'bg-green-500' : 
                             emotion === 'sadness' ? 'bg-blue-500' : 
-                            emotion === 'anger' ? 'bg-red-500' : 'bg-yellow-500'
+                            emotion === 'anger' ? 'bg-red-500' : 
+                            emotion === 'anxiety' ? 'bg-purple-500' : 'bg-yellow-500'
                           }`}
                           style={{ width: `${Math.round(score * 100)}%` }}
                         ></div>
@@ -200,7 +222,7 @@ const AssessmentForm: React.FC = () => {
             <Button variant="outline" onClick={resetForm}>
               Take Another Assessment
             </Button>
-            <Button onClick={() => window.location.href = '/referrals'}>
+            <Button onClick={() => window.location.href = '/student/referrals'}>
               View Recommended Services
             </Button>
           </CardFooter>
