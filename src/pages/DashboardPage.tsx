@@ -7,6 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useML } from "@/context/MLContext";
 import AssessmentForm from "@/components/assessment/AssessmentForm";
 import AssessmentHistory from "@/components/assessment/AssessmentHistory";
+import ReferralsPage from "@/components/referrals/ReferralsPage";
+import ResourcesPage from "@/components/resources/ResourcesPage";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import { LogOut, UserCircle, CheckCircle, BarChart2, History, HeartHandshake, BookOpen, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -178,15 +180,11 @@ const DashboardPage: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="referrals">
-            <div className="text-center py-8">
-              <p>Referrals will be implemented in a follow-up request</p>
-            </div>
+            <ReferralsPage />
           </TabsContent>
           
           <TabsContent value="resources">
-            <div className="text-center py-8">
-              <p>Resources will be implemented in a follow-up request</p>
-            </div>
+            <ResourcesPage />
           </TabsContent>
           
           {user?.role === 'admin' && (

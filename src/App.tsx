@@ -9,6 +9,7 @@ import { MLProvider } from "@/context/MLContext";
 import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
+import UnauthorizedPage from "./pages/UnauthorizedPage";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
                 </RequireAuth>
               } />
               
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
               <Route path="/" element={<Navigate to="/login" />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

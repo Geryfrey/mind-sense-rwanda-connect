@@ -164,10 +164,12 @@ export const RequireAuth: React.FC<{
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigate("/login");
-    } else if (!isLoading && isAuthenticated && user && !allowedRoles.includes(user.role)) {
-      navigate("/unauthorized");
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        navigate("/login");
+      } else if (user && !allowedRoles.includes(user.role)) {
+        navigate("/unauthorized");
+      }
     }
   }, [isLoading, isAuthenticated, user, allowedRoles, navigate]);
 
