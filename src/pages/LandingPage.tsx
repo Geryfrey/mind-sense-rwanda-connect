@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,11 @@ const LandingPage: React.FC = () => {
             <HeartHandshake className="h-6 w-6 text-purple-600 mr-2" />
             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">VARP</h1>
           </div>
+          
+          <nav className="hidden md:flex items-center space-x-6">
+            <a href="#how-it-works" className="text-gray-700 hover:text-purple-600 transition-colors">How It Works</a>
+            <a href="#features" className="text-gray-700 hover:text-purple-600 transition-colors">Features</a>
+          </nav>
           
           <div className="flex items-center space-x-3">
             <Link to="/login">
