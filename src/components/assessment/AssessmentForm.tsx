@@ -4,14 +4,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useML, AssessmentResult } from "@/context/MLContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const AssessmentForm: React.FC = () => {
   const [text, setText] = useState("");
   const [wordCount, setWordCount] = useState(0);
   const [isAssessing, setIsAssessing] = useState(false);
   const [result, setResult] = useState<AssessmentResult | null>(null);
-  const { analyzeText, isAnalyzing } = useML();
+  const { analyzeText } = useML();
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
@@ -42,37 +42,6 @@ const AssessmentForm: React.FC = () => {
     setText("");
     setWordCount(0);
     setResult(null);
-  };
-
-  // Feedback messages based on risk level
-  const getFeedbackMessage = (riskLevel: 'low' | 'moderate' | 'high', riskFactors: string[]) => {
-    switch(riskLevel) {
-      case 'low':
-        return "Your message suggests you're managing well overall. Remember that maintaining mental wellness is an ongoing practice.";
-      case 'moderate':
-        return `Based on your message, we've identified some concerns (${riskFactors.join(", ")}). Consider reaching out to a friend or counselor to discuss what you're going through.`;
-      case 'high':
-        return `Your message indicates significant distress related to ${riskFactors.join(", ")}. Please consider speaking with a mental health professional soon - support is available.`;
-      default:
-        return "Thank you for sharing. Regular check-ins on your mental health are important.";
-    }
-  };
-
-  // Get emotion with highest score
-  const getPrimaryEmotion = (emotions: { joy: number; sadness: number; anger: number; fear: number; anxiety: number }) => {
-    const entries = Object.entries(emotions) as [keyof typeof emotions, number][];
-    const [emotion] = entries.reduce((max, current) => 
-      current[1] > max[1] ? current : max, entries[0]);
-    
-    return emotion.charAt(0).toUpperCase() + emotion.slice(1);
-  };
-
-  // Get sentiment description
-  const getSentimentDescription = (sentiment: number) => {
-    if (sentiment >= 0.5) return "Positive";
-    if (sentiment >= 0) return "Somewhat Positive";
-    if (sentiment >= -0.5) return "Somewhat Negative";
-    return "Negative";
   };
 
   return (
@@ -139,91 +108,28 @@ const AssessmentForm: React.FC = () => {
                 <p className="text-sm text-gray-700">{result.text}</p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border rounded-lg bg-blue-50">
-                  <h3 className="font-medium mb-2">Primary Emotion</h3>
-                  <p className="text-xl font-semibold">{getPrimaryEmotion(result.emotions)}</p>
+              <div className={`p-4 border rounded-lg ${
+                result.riskLevel === 'low' ? 'bg-green-50' : 
+                result.riskLevel === 'moderate' ? 'bg-yellow-50' : 'bg-red-50'
+              }`}>
+                <h3 className="font-medium mb-2">Support Recommendation</h3>
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-xl font-semibold capitalize">{result.riskLevel} Priority</span>
                 </div>
-                
-                <div className="p-4 border rounded-lg bg-purple-50">
-                  <h3 className="font-medium mb-2">Overall Sentiment</h3>
-                  <p className="text-xl font-semibold">{getSentimentDescription(result.sentiment)}</p>
-                </div>
-                
-                <div className={`p-4 border rounded-lg col-span-1 md:col-span-2 ${
-                  result.riskLevel === 'low' ? 'bg-green-50' : 
-                  result.riskLevel === 'moderate' ? 'bg-yellow-50' : 'bg-red-50'
-                }`}>
-                  <h3 className="font-medium mb-2">Support Recommendation</h3>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-xl font-semibold capitalize">{result.riskLevel} Priority</span>
-                    {result.riskLevel !== 'low' && (
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        result.riskLevel === 'moderate' ? 'bg-yellow-200 text-yellow-800' : 
-                        'bg-red-200 text-red-800'
-                      }`}>
-                        {result.riskLevel === 'high' ? 'Consider speaking with a professional soon' : 
-                        'Follow-up recommended'}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm">{getFeedbackMessage(result.riskLevel, result.riskFactors)}</p>
-                  
-                  {/* Display risk factors */}
-                  {result.riskFactors.length > 0 && (
-                    <div className="mt-3">
-                      <h4 className="text-sm font-medium mb-1">Factors identified:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {result.riskFactors.map((factor, index) => (
-                          <span key={index} className={`text-xs px-2 py-1 rounded-full inline-flex items-center ${
-                            result.riskLevel === 'high' ? 'bg-red-100 text-red-800' : 
-                            result.riskLevel === 'moderate' ? 'bg-yellow-100 text-yellow-800' : 
-                            'bg-blue-100 text-blue-800'
-                          }`}>
-                            {factor === 'suicidal ideation' || factor === 'self-harm risk' ? (
-                              <AlertTriangle className="h-3 w-3 mr-1" />
-                            ) : null}
-                            {factor}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="p-4 border rounded-lg bg-background">
-                <h3 className="font-medium mb-2">Emotions Detected</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {Object.entries(result.emotions).map(([emotion, score]) => (
-                    <div key={emotion} className="flex flex-col">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm capitalize">{emotion}</span>
-                        <span className="text-xs">{Math.round(score * 100)}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className={`h-2.5 rounded-full ${
-                            emotion === 'joy' ? 'bg-green-500' : 
-                            emotion === 'sadness' ? 'bg-blue-500' : 
-                            emotion === 'anger' ? 'bg-red-500' : 
-                            emotion === 'anxiety' ? 'bg-purple-500' : 'bg-yellow-500'
-                          }`}
-                          style={{ width: `${Math.round(score * 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-sm">
+                  {result.riskLevel === 'low' 
+                    ? "Your message suggests you're managing well overall. Remember that maintaining mental wellness is an ongoing practice."
+                    : result.riskLevel === 'moderate'
+                    ? "Based on your message, we've identified some concerns. Consider reaching out to a friend or counselor."
+                    : "Your message indicates significant distress. Please consider speaking with a mental health professional soon - support is available."
+                  }
+                </p>
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col sm:flex-row justify-between gap-2">
+          <CardFooter className="flex justify-center">
             <Button variant="outline" onClick={resetForm}>
               Take Another Assessment
-            </Button>
-            <Button onClick={() => window.location.href = '/student/referrals'}>
-              View Recommended Services
             </Button>
           </CardFooter>
         </Card>

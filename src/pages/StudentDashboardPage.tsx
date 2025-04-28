@@ -1,22 +1,16 @@
 
 import React, { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { useML } from "@/context/MLContext";
 import AssessmentForm from "@/components/assessment/AssessmentForm";
-import AssessmentHistory from "@/components/assessment/AssessmentHistory";
-import ReferralsPage from "@/components/referrals/ReferralsPage";
-import ResourcesPage from "@/components/resources/ResourcesPage";
-import { LogOut, UserCircle, CheckCircle, History, HeartHandshake, BookOpen, Menu, X } from "lucide-react";
+import { LogOut, UserCircle, CheckCircle, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const StudentDashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
   const { loadModel, isModelLoaded } = useML();
-  const navigate = useNavigate();
-  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   
   useEffect(() => {
@@ -26,47 +20,13 @@ const StudentDashboardPage: React.FC = () => {
     }
   }, [loadModel, isModelLoaded]);
   
-  // Get active tab from URL or default to assessment
-  const getActiveTabFromUrl = () => {
-    const path = location.pathname;
-    if (path.includes('/student/history')) return 'history';
-    if (path.includes('/student/referrals')) return 'referrals';
-    if (path.includes('/student/resources')) return 'resources';
-    return 'assessment';
-  };
-  
-  const [activeTab, setActiveTab] = React.useState(getActiveTabFromUrl());
-  
-  // Handle tab change
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    
-    // Update URL based on selected tab
-    switch (value) {
-      case 'history':
-        navigate('/student/history');
-        break;
-      case 'referrals':
-        navigate('/student/referrals');
-        break;
-      case 'resources':
-        navigate('/student/resources');
-        break;
-      default:
-        navigate('/student');
-    }
-    
-    // Close mobile menu after navigation
-    setIsMobileMenuOpen(false);
-  };
-  
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-blue-50">
       {/* Header */}
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center">
-            <HeartHandshake className="h-6 w-6 text-purple-600 mr-2" />
+            <CheckCircle className="h-6 w-6 text-purple-600 mr-2" />
             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">VARP</h1>
           </div>
           
@@ -119,31 +79,14 @@ const StudentDashboardPage: React.FC = () => {
       {/* Main content */}
       <main className="container mx-auto px-4 py-6 md:py-8">
         <Tabs
-          value={activeTab}
-          onValueChange={handleTabChange}
+          value="assessment"
           className="space-y-6"
         >
           <div className="bg-white p-1 rounded-lg shadow-sm">
-            <TabsList className="w-full grid grid-cols-4">
+            <TabsList className="w-full grid grid-cols-1">
               <TabsTrigger value="assessment" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
                 <CheckCircle className="h-4 w-4 mr-2" />
-                <span className="hidden md:inline">Assessment</span>
-                <span className="md:hidden">Assess</span>
-              </TabsTrigger>
-              <TabsTrigger value="history" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
-                <History className="h-4 w-4 mr-2" />
-                <span className="hidden md:inline">History</span>
-                <span className="md:hidden">History</span>
-              </TabsTrigger>
-              <TabsTrigger value="referrals" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
-                <HeartHandshake className="h-4 w-4 mr-2" />
-                <span className="hidden md:inline">Referrals</span>
-                <span className="md:hidden">Refer</span>
-              </TabsTrigger>
-              <TabsTrigger value="resources" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
-                <BookOpen className="h-4 w-4 mr-2" />
-                <span className="hidden md:inline">Resources</span>
-                <span className="md:hidden">Learn</span>
+                <span>Mental Health Assessment</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -162,18 +105,6 @@ const StudentDashboardPage: React.FC = () => {
           <TabsContent value="assessment">
             <AssessmentForm />
           </TabsContent>
-          
-          <TabsContent value="history">
-            <AssessmentHistory />
-          </TabsContent>
-          
-          <TabsContent value="referrals">
-            <ReferralsPage />
-          </TabsContent>
-          
-          <TabsContent value="resources">
-            <ResourcesPage />
-          </TabsContent>
         </Tabs>
       </main>
       
@@ -181,7 +112,7 @@ const StudentDashboardPage: React.FC = () => {
       <footer className="bg-white border-t mt-8">
         <div className="container mx-auto px-4 py-4">
           <p className="text-center text-sm text-gray-500">
-            Virtual Assessment & Referral Platform (VARP) - A mental health initiative for Rwandan students
+            Virtual Assessment & Referral Platform (VARP) - A mental health initiative for students
           </p>
         </div>
       </footer>
