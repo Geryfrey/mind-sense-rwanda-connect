@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +11,7 @@ import { MLProvider } from "@/context/MLContext";
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 import StudentDashboardPage from "./pages/StudentDashboardPage";
-import AdminDashboardPage from "./pages/AdminDashboardPage";
+import EmptyAdminDashboard from "./pages/EmptyAdminDashboard";
 import NotFound from "./pages/NotFound";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 
@@ -57,7 +58,7 @@ const App = () => (
               {/* Admin Dashboard Routes */}
               <Route path="/admin" element={
                 <RequireAuth allowedRoles={["admin"]}>
-                  <AdminDashboardPage />
+                  <EmptyAdminDashboard />
                 </RequireAuth>
               } />
               
