@@ -9,6 +9,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  regNumber?: string;
   role: UserRole;
 }
 
@@ -17,8 +18,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string, role: UserRole) => Promise<boolean>;
+  login: (regNumber: string, password: string) => Promise<boolean>;
+  register: (name: string, regNumber: string, email: string, password: string, role: UserRole) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -38,20 +39,22 @@ const mockUsers: User[] = [
     id: "1",
     name: "Admin User",
     email: "admin@example.com",
+    regNumber: "ADMIN001",
     role: "admin",
   },
   {
     id: "2", 
     name: "Student User",
     email: "student@example.com",
+    regNumber: "R302/1234/2023",
     role: "student",
   },
 ];
 
 // Mock credentials database for demo purposes
 const mockCredentials: Record<string, { password: string; userId: string }> = {
-  "admin@example.com": { password: "admin123", userId: "1" },
-  "student@example.com": { password: "student123", userId: "2" },
+  "ADMIN001": { password: "admin123", userId: "1" },
+  "R302/1234/2023": { password: "student123", userId: "2" },
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -69,11 +72,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Login function
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (regNumber: string, password: string): Promise<boolean> => {
     // In a real app, this would be an API call
     return new Promise((resolve) => {
       setTimeout(() => {
-        const credentials = mockCredentials[email];
+        const credentials = mockCredentials[regNumber];
         
         if (credentials && credentials.password === password) {
           const foundUser = mockUsers.find(u => u.id === credentials.userId);
@@ -99,7 +102,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Register function
   const register = async (
-    name: string, 
+    name: string,
+    regNumber: string,
     email: string, 
     password: string, 
     role: UserRole
@@ -107,8 +111,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // In a real app, this would be an API call
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Check if email is taken
-        if (mockCredentials[email]) {
+        // Check if regNumber is taken
+        if (mockCredentials[regNumber]) {
           resolve(false);
           return;
         }
@@ -121,12 +125,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: newId,
           name,
           email,
+          regNumber,
           role,
         };
 
         // Add user to mock database
         mockUsers.push(newUser);
-        mockCredentials[email] = { password, userId: newId };
+        mockCredentials[regNumber] = { password, userId: newId };
 
         // Set current user and save to localStorage
         setUser(newUser);

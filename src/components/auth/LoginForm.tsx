@@ -20,7 +20,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 
 // Form schema validation
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  regNumber: z.string().min(3, "Registration number must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -35,7 +35,7 @@ const LoginForm: React.FC = () => {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      regNumber: "",
       password: "",
     },
   });
@@ -45,12 +45,12 @@ const LoginForm: React.FC = () => {
     setError(null);
 
     try {
-      const success = await login(data.email, data.password);
+      const success = await login(data.regNumber, data.password);
       
       if (success) {
         navigate("/dashboard");
       } else {
-        setError("Invalid email or password. Please try again.");
+        setError("Invalid registration number or password. Please try again.");
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -78,12 +78,12 @@ const LoginForm: React.FC = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="email"
+              name="regNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Registration Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="you@example.com" {...field} />
+                    <Input placeholder="e.g. R302/1234/2023" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

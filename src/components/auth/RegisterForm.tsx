@@ -28,6 +28,7 @@ import {
 // Form schema validation
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
+  regNumber: z.string().min(3, "Registration number must be at least 3 characters"),
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
@@ -49,6 +50,7 @@ const RegisterForm: React.FC = () => {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
+      regNumber: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -63,6 +65,7 @@ const RegisterForm: React.FC = () => {
     try {
       const success = await register(
         data.name,
+        data.regNumber,
         data.email,
         data.password,
         data.role as UserRole
@@ -71,7 +74,7 @@ const RegisterForm: React.FC = () => {
       if (success) {
         navigate("/dashboard");
       } else {
-        setError("Email already in use. Please try another email.");
+        setError("Registration number or email already in use. Please try another.");
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -105,6 +108,19 @@ const RegisterForm: React.FC = () => {
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
                     <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="regNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Registration Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. R302/1234/2023" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
