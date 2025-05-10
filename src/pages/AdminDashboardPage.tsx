@@ -1,14 +1,12 @@
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import AdminDashboard from "@/components/admin/AdminDashboard";
-import { LogOut, UserCircle, BarChart2, Users, FileSpreadsheet, Menu, X, HeartHandshake } from "lucide-react";
+import { LogOut, UserCircle, HeartHandshake, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const AdminDashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   return (
@@ -72,42 +70,6 @@ const AdminDashboardPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900">Admin Dashboard</h2>
-            
-            <div className="flex space-x-2">
-              <Button variant="outline" className="border-indigo-600 text-indigo-600">
-                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Export Data
-              </Button>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-indigo-600 to-blue-500 text-white rounded-lg p-6 shadow-md">
-              <div className="flex items-center mb-4">
-                <Users className="h-8 w-8 mr-3 text-indigo-100" />
-                <h3 className="text-xl font-semibold">Total Students</h3>
-              </div>
-              <p className="text-3xl font-bold">247</p>
-              <p className="text-indigo-100 text-sm mt-2">+12% from last month</p>
-            </div>
-            
-            <div className="bg-gradient-to-br from-purple-600 to-indigo-500 text-white rounded-lg p-6 shadow-md">
-              <div className="flex items-center mb-4">
-                <BarChart2 className="h-8 w-8 mr-3 text-purple-100" />
-                <h3 className="text-xl font-semibold">High Risk Cases</h3>
-              </div>
-              <p className="text-3xl font-bold">32</p>
-              <p className="text-purple-100 text-sm mt-2">-3% from last month</p>
-            </div>
-            
-            <div className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-lg p-6 shadow-md">
-              <div className="flex items-center mb-4">
-                <HeartHandshake className="h-8 w-8 mr-3 text-blue-100" />
-                <h3 className="text-xl font-semibold">Referrals Made</h3>
-              </div>
-              <p className="text-3xl font-bold">189</p>
-              <p className="text-blue-100 text-sm mt-2">+24% from last month</p>
-            </div>
           </div>
           
           <AdminDashboard />

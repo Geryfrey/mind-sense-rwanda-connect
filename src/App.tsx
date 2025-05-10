@@ -11,7 +11,7 @@ import { MLProvider } from "@/context/MLContext";
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 import StudentDashboardPage from "./pages/StudentDashboardPage";
-import EmptyAdminDashboard from "./pages/EmptyAdminDashboard";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import NotFound from "./pages/NotFound";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 
@@ -58,7 +58,7 @@ const App = () => (
               {/* Admin Dashboard Routes */}
               <Route path="/admin" element={
                 <RequireAuth allowedRoles={["admin"]}>
-                  <EmptyAdminDashboard />
+                  <AdminDashboardPage />
                 </RequireAuth>
               } />
               
