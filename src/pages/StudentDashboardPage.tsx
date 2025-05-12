@@ -4,14 +4,47 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { useML } from "@/context/MLContext";
+import { useLocation, useNavigate } from "react-router-dom";
 import AssessmentForm from "@/components/assessment/AssessmentForm";
-import { LogOut, UserCircle, CheckCircle, Menu, X } from "lucide-react";
+import AssessmentHistory from "@/components/assessment/AssessmentHistory";
+import ReferralsPage from "@/components/referrals/ReferralsPage";
+import ResourcesPage from "@/components/resources/ResourcesPage";
+import { LogOut, UserCircle, CheckCircle, Menu, X, History, BookOpen, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const StudentDashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
   const { loadModel, isModelLoaded } = useML();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Determine active tab based on current path
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path.includes('/history')) return 'history';
+    if (path.includes('/referrals')) return 'referrals';
+    if (path.includes('/resources')) return 'resources';
+    return 'assessment';
+  };
+  
+  // Handle tab change to update URL
+  const handleTabChange = (value: string) => {
+    switch(value) {
+      case 'history':
+        navigate('/student/history');
+        break;
+      case 'referrals':
+        navigate('/student/referrals');
+        break;
+      case 'resources':
+        navigate('/student/resources');
+        break;
+      default:
+        navigate('/student');
+        break;
+    }
+  };
   
   useEffect(() => {
     // Load the ML model when the dashboard loads
@@ -79,19 +112,36 @@ const StudentDashboardPage: React.FC = () => {
       {/* Main content */}
       <main className="container mx-auto px-4 py-6 md:py-8">
         <Tabs
-          value="assessment"
+          value={getActiveTab()}
+          onValueChange={handleTabChange}
           className="space-y-6"
         >
           <div className="bg-white p-1 rounded-lg shadow-sm">
-            <TabsList className="w-full grid grid-cols-1">
+            <TabsList className="w-full grid grid-cols-4">
               <TabsTrigger value="assessment" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
                 <CheckCircle className="h-4 w-4 mr-2" />
-                <span>Mental Health Assessment</span>
+                <span className="hidden sm:inline">Assessment</span>
+                <span className="sm:hidden">Assess</span>
+              </TabsTrigger>
+              <TabsTrigger value="history" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
+                <History className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">History</span>
+                <span className="sm:hidden">History</span>
+              </TabsTrigger>
+              <TabsTrigger value="referrals" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
+                <Globe className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Referrals</span>
+                <span className="sm:hidden">Refer</span>
+              </TabsTrigger>
+              <TabsTrigger value="resources" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
+                <BookOpen className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Resources</span>
+                <span className="sm:hidden">Learn</span>
               </TabsTrigger>
             </TabsList>
           </div>
           
-          {!isModelLoaded && (
+          {!isModelLoaded && getActiveTab() === 'assessment' && (
             <Card>
               <CardContent className="py-4">
                 <div className="flex items-center justify-center space-x-2">
@@ -104,6 +154,18 @@ const StudentDashboardPage: React.FC = () => {
           
           <TabsContent value="assessment">
             <AssessmentForm />
+          </TabsContent>
+          
+          <TabsContent value="history">
+            <AssessmentHistory />
+          </TabsContent>
+          
+          <TabsContent value="referrals">
+            <ReferralsPage />
+          </TabsContent>
+          
+          <TabsContent value="resources">
+            <ResourcesPage />
           </TabsContent>
         </Tabs>
       </main>
