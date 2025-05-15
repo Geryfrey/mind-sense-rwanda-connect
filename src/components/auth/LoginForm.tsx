@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "@/components/ui/use-toast";
 
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -48,12 +49,26 @@ const LoginForm: React.FC = () => {
       const success = await login(data.regNumber, data.password);
       
       if (success) {
+        toast({
+          title: "Login successful",
+          description: "Welcome back!",
+        });
         navigate("/dashboard");
       } else {
         setError("Invalid registration number or password. Please try again.");
+        toast({
+          title: "Login failed",
+          description: "Invalid credentials. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
+      toast({
+        title: "An error occurred",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }

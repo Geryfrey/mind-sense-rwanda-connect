@@ -1,6 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 // User types
 export type UserRole = "student" | "admin";
@@ -33,28 +35,29 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
 });
 
-// Mock users database for demo purposes
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "Admin User",
-    email: "admin@example.com",
-    regNumber: "ADMIN001",
-    role: "admin",
-  },
-  {
-    id: "2", 
-    name: "Student User",
-    email: "student@example.com",
-    regNumber: "R302/1234/2023",
-    role: "student",
-  },
-];
-
-// Mock credentials database for demo purposes
-const mockCredentials: Record<string, { password: string; userId: string }> = {
-  "ADMIN001": { password: "admin123", userId: "1" },
-  "R302/1234/2023": { password: "student123", userId: "2" },
+// Map Supabase User to our User type
+const mapSupabaseUser = async (supabaseUser: SupabaseUser): Promise<User | null> => {
+  if (!supabaseUser) return null;
+  
+  // Fetch the user's profile from our profiles table
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', supabaseUser.id)
+    .single();
+  
+  if (error || !profile) {
+    console.error("Error fetching user profile:", error);
+    return null;
+  }
+  
+  return {
+    id: supabaseUser.id,
+    name: profile.name || supabaseUser.email?.split('@')[0] || 'User',
+    email: supabaseUser.email || '',
+    regNumber: supabaseUser.user_metadata.regNumber,
+    role: profile.role as UserRole
+  };
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -64,40 +67,87 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check if user is already logged in
   useEffect(() => {
-    const storedUser = localStorage.getItem("varp_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
-  }, []);
+    const initializeAuth = async () => {
+      // Set up the auth state change listener first
+      const { data: authListener } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (event === 'SIGNED_OUT') {
+            setUser(null);
+            navigate('/login');
+            return;
+          }
+          
+          if (session?.user) {
+            const mappedUser = await mapSupabaseUser(session.user);
+            setUser(mappedUser);
+          } else {
+            setUser(null);
+          }
+          
+          setIsLoading(false);
+        }
+      );
+
+      // Then check for an existing session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const mappedUser = await mapSupabaseUser(session.user);
+        setUser(mappedUser);
+      }
+      
+      setIsLoading(false);
+      
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    };
+    
+    initializeAuth();
+  }, [navigate]);
 
   // Login function
   const login = async (regNumber: string, password: string): Promise<boolean> => {
-    // In a real app, this would be an API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const credentials = mockCredentials[regNumber];
+    try {
+      // In a real app, we would look up the email by regNumber first
+      // For this simple implementation, we'll use regNumber as the email
+      // This should be adjusted based on your actual data model
+      const email = `${regNumber}@example.com`; // this is temporary
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        console.error("Login error:", error.message);
+        return false;
+      }
+      
+      // User login successful
+      if (data.user) {
+        const mappedUser = await mapSupabaseUser(data.user);
         
-        if (credentials && credentials.password === password) {
-          const foundUser = mockUsers.find(u => u.id === credentials.userId);
-          if (foundUser) {
-            setUser(foundUser);
-            localStorage.setItem("varp_user", JSON.stringify(foundUser));
-            
-            // Navigate based on role
-            if (foundUser.role === "admin") {
-              navigate("/admin");
-            } else {
-              navigate("/student");
-            }
-            
-            resolve(true);
-            return;
-          }
+        if (!mappedUser) {
+          return false;
         }
-        resolve(false);
-      }, 800); // Simulate network delay
-    });
+        
+        setUser(mappedUser);
+        
+        // Navigate based on role
+        if (mappedUser.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/student");
+        }
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Login exception:", error);
+      return false;
+    }
   };
 
   // Register function
@@ -108,51 +158,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     password: string, 
     role: UserRole
   ): Promise<boolean> => {
-    // In a real app, this would be an API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Check if regNumber is taken
-        if (mockCredentials[regNumber]) {
-          resolve(false);
-          return;
+    try {
+      // Register the user with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            regNumber,
+            role
+          }
         }
-
-        // Generate new user ID
-        const newId = `${mockUsers.length + 1}`;
+      });
+      
+      if (error) {
+        console.error("Registration error:", error.message);
+        return false;
+      }
+      
+      if (data.user) {
+        // Our trigger will automatically create the profile
+        // Wait a moment for the trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Create new user
-        const newUser: User = {
-          id: newId,
-          name,
-          email,
-          regNumber,
-          role,
-        };
-
-        // Add user to mock database
-        mockUsers.push(newUser);
-        mockCredentials[regNumber] = { password, userId: newId };
-
-        // Set current user and save to localStorage
-        setUser(newUser);
-        localStorage.setItem("varp_user", JSON.stringify(newUser));
+        const mappedUser = await mapSupabaseUser(data.user);
+        
+        if (!mappedUser) {
+          return false;
+        }
+        
+        setUser(mappedUser);
         
         // Navigate based on role
-        if (role === "admin") {
+        if (mappedUser.role === "admin") {
           navigate("/admin");
         } else {
           navigate("/student");
         }
         
-        resolve(true);
-      }, 800); // Simulate network delay
-    });
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Registration exception:", error);
+      return false;
+    }
   };
 
   // Logout function
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem("varp_user");
     navigate("/login");
   };
 
