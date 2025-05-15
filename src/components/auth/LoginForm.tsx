@@ -16,6 +16,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import {
@@ -69,8 +70,8 @@ const LoginForm: React.FC = () => {
         navigate("/dashboard");
       } else {
         const errorMessage = loginType === "student" 
-          ? "Invalid registration number or password. Please try again."
-          : "Invalid email or password. Please try again.";
+          ? "Invalid registration number or password. Please check your details and try again."
+          : "Invalid email or password. Please check your details and try again.";
           
         setError(errorMessage);
         toast({
@@ -80,10 +81,11 @@ const LoginForm: React.FC = () => {
         });
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      console.error("Login error:", err);
+      setError("An error occurred during login. Please try again later.");
       toast({
-        title: "An error occurred",
-        description: "Please try again later.",
+        title: "Login error",
+        description: "There was a problem processing your login. Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -147,6 +149,11 @@ const LoginForm: React.FC = () => {
                       {...field} 
                     />
                   </FormControl>
+                  {loginType === "student" && (
+                    <FormDescription className="text-xs">
+                      Enter your University of Rwanda registration number (e.g. 220014748, 221022348, 221000780)
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

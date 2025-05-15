@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "@/components/ui/use-toast";
 
 import { useAuth, UserRole } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import {
@@ -85,12 +87,34 @@ const RegisterForm: React.FC = () => {
       );
       
       if (success) {
+        toast({
+          title: "Registration successful",
+          description: "Welcome to VARP!",
+        });
         navigate("/dashboard");
       } else {
-        setError("Registration number or email already in use. Please try another.");
+        // Show more specific error messages based on role
+        if (data.role === "student") {
+          setError("This registration number is already registered. Please use another or contact support.");
+        } else {
+          setError("This email address is already registered. Please use another or try resetting your password.");
+        }
+        toast({
+          title: "Registration failed",
+          description: data.role === "student" 
+            ? "Registration number already in use" 
+            : "Email address already in use",
+          variant: "destructive",
+        });
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      console.error("Registration error:", err);
+      setError("An error occurred during registration. Please try again.");
+      toast({
+        title: "Registration error",
+        description: "There was a problem with your registration. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -162,6 +186,9 @@ const RegisterForm: React.FC = () => {
                     <FormControl>
                       <Input placeholder="e.g. 220014748" {...field} />
                     </FormControl>
+                    <FormDescription className="text-xs">
+                      Enter your University of Rwanda registration number (e.g. 220014748, 221022348, 221000780)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
