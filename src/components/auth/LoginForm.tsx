@@ -18,10 +18,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Form schema validation
 const loginSchema = z.object({
-  regNumber: z.string().min(3, "Registration number must be at least 3 characters"),
+  loginType: z.enum(["student", "admin"]),
+  identifier: z.string().min(1, "This field is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -36,17 +44,22 @@ const LoginForm: React.FC = () => {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      regNumber: "",
+      loginType: "student",
+      identifier: "",
       password: "",
     },
   });
+
+  // Watch the login type to change the identifier field label and placeholder
+  const loginType = form.watch("loginType");
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const success = await login(data.regNumber, data.password);
+      // For student, we use regNumber, for admin we use email
+      const success = await login(data.identifier, data.password, data.loginType);
       
       if (success) {
         toast({
@@ -55,10 +68,14 @@ const LoginForm: React.FC = () => {
         });
         navigate("/dashboard");
       } else {
-        setError("Invalid registration number or password. Please try again.");
+        const errorMessage = loginType === "student" 
+          ? "Invalid registration number or password. Please try again."
+          : "Invalid email or password. Please try again.";
+          
+        setError(errorMessage);
         toast({
           title: "Login failed",
-          description: "Invalid credentials. Please try again.",
+          description: errorMessage,
           variant: "destructive",
         });
       }
@@ -93,17 +110,48 @@ const LoginForm: React.FC = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="regNumber"
+              name="loginType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Registration Number</FormLabel>
+                  <FormLabel>Account Type</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select account type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="admin">Administrator</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="identifier"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {loginType === "student" ? "Registration Number" : "Email"}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. R302/1234/2023" {...field} />
+                    <Input 
+                      placeholder={loginType === "student" ? "e.g. 220014748" : "you@example.com"} 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="password"
@@ -117,6 +165,7 @@ const LoginForm: React.FC = () => {
                 </FormItem>
               )}
             />
+            
             <Button
               type="submit"
               className="w-full"

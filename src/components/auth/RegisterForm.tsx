@@ -25,17 +25,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Form schema validation
+// Form schema validation with conditional validation for regNumber
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  regNumber: z.string().min(3, "Registration number must be at least 3 characters"),
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
   role: z.enum(["student", "admin"]),
+  regNumber: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
+}).refine((data) => {
+  // Only require regNumber for students
+  if (data.role === "student" && (!data.regNumber || data.regNumber.length < 3)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Registration number is required for students",
+  path: ["regNumber"],
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -50,13 +59,17 @@ const RegisterForm: React.FC = () => {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
-      regNumber: "",
       email: "",
       password: "",
       confirmPassword: "",
       role: "student",
+      regNumber: "",
     },
+    mode: "onChange"
   });
+
+  // Watch the role to conditionally show regNumber field
+  const selectedRole = form.watch("role");
 
   const onSubmit = async (data: RegisterFormValues) => {
     setIsSubmitting(true);
@@ -65,7 +78,7 @@ const RegisterForm: React.FC = () => {
     try {
       const success = await register(
         data.name,
-        data.regNumber,
+        data.regNumber || "",
         data.email,
         data.password,
         data.role as UserRole
@@ -113,19 +126,48 @@ const RegisterForm: React.FC = () => {
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
-              name="regNumber"
+              name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Registration Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. R302/1234/2023" {...field} />
-                  </FormControl>
+                  <FormLabel>Account Type</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select account type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="admin">Administrator</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
+            {selectedRole === "student" && (
+              <FormField
+                control={form.control}
+                name="regNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Registration Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. 220014748" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
             <FormField
               control={form.control}
               name="email"
@@ -161,30 +203,6 @@ const RegisterForm: React.FC = () => {
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Account Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select account type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="student">Student</SelectItem>
-                      <SelectItem value="admin">Administrator</SelectItem>
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

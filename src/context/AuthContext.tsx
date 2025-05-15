@@ -20,7 +20,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (regNumber: string, password: string) => Promise<boolean>;
+  login: (identifier: string, password: string, loginType?: string) => Promise<boolean>;
   register: (name: string, regNumber: string, email: string, password: string, role: UserRole) => Promise<boolean>;
   logout: () => void;
 }
@@ -106,12 +106,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [navigate]);
 
   // Login function
-  const login = async (regNumber: string, password: string): Promise<boolean> => {
+  const login = async (identifier: string, password: string, loginType = "student"): Promise<boolean> => {
     try {
-      // In a real app, we would look up the email by regNumber first
-      // For this simple implementation, we'll use regNumber as the email
-      // This should be adjusted based on your actual data model
-      const email = `${regNumber}@example.com`; // this is temporary
+      let email;
+      
+      // Determine login method based on account type
+      if (loginType === "student") {
+        // For students, we use registration number
+        email = `${identifier}@example.com`; // Using the registration number as email
+      } else {
+        // For admins, use the email directly
+        email = identifier;
+      }
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -153,20 +159,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Register function
   const register = async (
     name: string,
-    regNumber: string,
+    regNumber: string, 
     email: string, 
     password: string, 
     role: UserRole
   ): Promise<boolean> => {
     try {
+      // For students, we use registration number as part of the email
+      // For admins, we use their actual email
+      const authEmail = role === "student" ? `${regNumber}@example.com` : email;
+      
       // Register the user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: authEmail,
         password,
         options: {
           data: {
             name,
-            regNumber,
+            regNumber: role === "student" ? regNumber : "",
             role
           }
         }
