@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
 // Form schema validation
 const loginSchema = z.object({
@@ -59,6 +60,11 @@ const LoginForm: React.FC = () => {
     setError(null);
 
     try {
+      console.log("Attempting login with:", { 
+        identifier: data.identifier, 
+        loginType: data.loginType 
+      });
+      
       // For student, we use regNumber, for admin we use email
       const success = await login(data.identifier, data.password, data.loginType);
       
@@ -88,6 +94,49 @@ const LoginForm: React.FC = () => {
         description: "There was a problem processing your login. Please try again later.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // Development helper function
+  const loginAsTestUser = async (userType: 'student' | 'admin') => {
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      // Default test credentials
+      let email = userType === 'student' ? '220014748@example.com' : 'admin@example.com';
+      let password = 'password123';
+      
+      console.log(`Development login: Attempting to log in as test ${userType}`);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        console.error("Test login error:", error.message);
+        toast({
+          title: "Development login failed",
+          description: `Could not log in as test ${userType}. Error: ${error.message}`,
+          variant: "destructive",
+        });
+        setError(`Test ${userType} login failed: ${error.message}`);
+        return;
+      }
+      
+      if (data.user) {
+        toast({
+          title: "Development login successful",
+          description: `Logged in as test ${userType}`,
+        });
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      console.error("Development login error:", err);
+      setError(`An error occurred during test ${userType} login`);
     } finally {
       setIsSubmitting(false);
     }
@@ -182,6 +231,36 @@ const LoginForm: React.FC = () => {
             </Button>
           </form>
         </Form>
+        
+        {/* Development tools section */}
+        {import.meta.env.DEV && (
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Development Accounts</h3>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 text-xs"
+                onClick={() => loginAsTestUser('student')}
+                disabled={isSubmitting}
+              >
+                Test Student
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 text-xs"
+                onClick={() => loginAsTestUser('admin')}
+                disabled={isSubmitting}
+              >
+                Test Admin
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              These buttons use test accounts with password: password123
+            </p>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
