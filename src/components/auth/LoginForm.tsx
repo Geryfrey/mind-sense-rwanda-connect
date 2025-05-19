@@ -26,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 
 // Form schema validation
 const loginSchema = z.object({
@@ -65,7 +64,6 @@ const LoginForm: React.FC = () => {
         loginType: data.loginType 
       });
       
-      // For student, we use regNumber, for admin we use email
       const success = await login(data.identifier, data.password, data.loginType);
       
       if (success) {
@@ -73,7 +71,7 @@ const LoginForm: React.FC = () => {
           title: "Login successful",
           description: "Welcome back!",
         });
-        navigate("/dashboard");
+        // Navigation is handled in the AuthContext
       } else {
         const errorMessage = loginType === "student" 
           ? "Invalid registration number or password. Please check your details and try again."
@@ -99,43 +97,36 @@ const LoginForm: React.FC = () => {
     }
   };
   
-  // Development helper function
+  // Helper function for demo logins
   const loginAsTestUser = async (userType: 'student' | 'admin') => {
     setIsSubmitting(true);
     setError(null);
     
     try {
       // Default test credentials
-      let email = userType === 'student' ? '220014748@example.com' : 'admin@example.com';
+      let identifier = userType === 'student' ? '220014748' : 'admin@example.com';
       let password = 'password123';
       
-      console.log(`Development login: Attempting to log in as test ${userType}`);
+      console.log(`Demo login: Attempting to log in as test ${userType}`);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const success = await login(identifier, password, userType);
       
-      if (error) {
-        console.error("Test login error:", error.message);
+      if (success) {
         toast({
-          title: "Development login failed",
-          description: `Could not log in as test ${userType}. Error: ${error.message}`,
-          variant: "destructive",
-        });
-        setError(`Test ${userType} login failed: ${error.message}`);
-        return;
-      }
-      
-      if (data.user) {
-        toast({
-          title: "Development login successful",
+          title: "Demo login successful",
           description: `Logged in as test ${userType}`,
         });
-        navigate("/dashboard");
+        // Navigation is handled in the AuthContext
+      } else {
+        toast({
+          title: "Demo login failed",
+          description: `Could not log in as test ${userType}. Check the demo credentials.`,
+          variant: "destructive",
+        });
+        setError(`Test ${userType} login failed. Please check the demo credentials.`);
       }
     } catch (err) {
-      console.error("Development login error:", err);
+      console.error("Demo login error:", err);
       setError(`An error occurred during test ${userType} login`);
     } finally {
       setIsSubmitting(false);
@@ -232,35 +223,33 @@ const LoginForm: React.FC = () => {
           </form>
         </Form>
         
-        {/* Development tools section */}
-        {import.meta.env.DEV && (
-          <div className="mt-8 pt-4 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Development Accounts</h3>
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1 text-xs"
-                onClick={() => loginAsTestUser('student')}
-                disabled={isSubmitting}
-              >
-                Test Student
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1 text-xs"
-                onClick={() => loginAsTestUser('admin')}
-                disabled={isSubmitting}
-              >
-                Test Admin
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              These buttons use test accounts with password: password123
-            </p>
+        {/* Demo accounts section */}
+        <div className="mt-8 pt-4 border-t border-gray-200">
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Demo Accounts</h3>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 text-xs"
+              onClick={() => loginAsTestUser('student')}
+              disabled={isSubmitting}
+            >
+              Test Student
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 text-xs"
+              onClick={() => loginAsTestUser('admin')}
+              disabled={isSubmitting}
+            >
+              Test Admin
+            </Button>
           </div>
-        )}
+          <p className="text-xs text-gray-500 mt-2">
+            These buttons use test accounts with password: password123
+          </p>
+        </div>
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -25,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 
 // Form schema validation with conditional validation for regNumber
 const registerSchema = z.object({
@@ -85,8 +85,6 @@ const RegisterForm: React.FC = () => {
         role: data.role
       });
       
-      // For students, check if the registration number is already used
-      // by trying to register and handling the error appropriately
       const success = await register(
         data.name,
         data.regNumber || "",
@@ -100,7 +98,7 @@ const RegisterForm: React.FC = () => {
           title: "Registration successful",
           description: "Welcome to VARP!",
         });
-        navigate("/dashboard");
+        // Navigation is handled in the AuthContext
       } else {
         // Show more specific error messages based on role
         if (data.role === "student") {
@@ -140,7 +138,7 @@ const RegisterForm: React.FC = () => {
     }
   };
 
-  // Development helper function - only for testing purposes
+  // Helper function for demo registration
   const registerAsTestUser = async (userType: 'student' | 'admin') => {
     setIsSubmitting(true);
     setError(null);
@@ -164,7 +162,7 @@ const RegisterForm: React.FC = () => {
             role: "admin" as UserRole
           };
       
-      console.log(`Development registration: Attempting to register test ${userType} with:`, testData);
+      console.log(`Demo registration: Attempting to register test ${userType} with:`, testData);
       
       const success = await register(
         testData.name,
@@ -179,7 +177,7 @@ const RegisterForm: React.FC = () => {
           title: "Test registration successful",
           description: `Registered as test ${userType}`,
         });
-        navigate("/dashboard");
+        // Navigation is handled in the AuthContext
       } else {
         setError(`Could not register test ${userType}`);
         toast({
@@ -320,35 +318,33 @@ const RegisterForm: React.FC = () => {
           </form>
         </Form>
         
-        {/* Development tools section */}
-        {import.meta.env.DEV && (
-          <div className="mt-8 pt-4 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Development Accounts</h3>
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1 text-xs"
-                onClick={() => registerAsTestUser('student')}
-                disabled={isSubmitting}
-              >
-                Create Test Student
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1 text-xs"
-                onClick={() => registerAsTestUser('admin')}
-                disabled={isSubmitting}
-              >
-                Create Test Admin
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              These buttons create random test accounts with password: password123
-            </p>
+        {/* Demo account creation section */}
+        <div className="mt-8 pt-4 border-t border-gray-200">
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Demo Accounts</h3>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 text-xs"
+              onClick={() => registerAsTestUser('student')}
+              disabled={isSubmitting}
+            >
+              Create Test Student
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 text-xs"
+              onClick={() => registerAsTestUser('admin')}
+              disabled={isSubmitting}
+            >
+              Create Test Admin
+            </Button>
           </div>
-        )}
+          <p className="text-xs text-gray-500 mt-2">
+            These buttons create random test accounts with password: password123
+          </p>
+        </div>
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
