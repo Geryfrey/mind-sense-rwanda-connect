@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -208,6 +207,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const authEmail = role === "student" ? `${regNumber}@example.com` : email;
       
       console.log(`Attempting to register with email: ${authEmail}, role: ${role}`);
+      
+      // Check for existing user first to avoid duplicate error
+      if (role === "student") {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          const { data: existingUsers } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('role', 'student')
+            .ilike('name', `%${regNumber}%`);
+            
+          if (existingUsers && existingUsers.length > 0) {
+            console.error("Registration number already in use");
+            return false;
+          }
+        }
+      }
       
       // Register the user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({

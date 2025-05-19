@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -87,22 +86,7 @@ const RegisterForm: React.FC = () => {
       });
       
       // For students, check if the registration number is already used
-      if (data.role === "student") {
-        const studentEmail = `${data.regNumber}@example.com`;
-        const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(studentEmail);
-        
-        if (existingUser) {
-          setError(`Registration number ${data.regNumber} is already registered. Please use another or contact support.`);
-          toast({
-            title: "Registration failed",
-            description: "Registration number already in use",
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
-        }
-      }
-      
+      // by trying to register and handling the error appropriately
       const success = await register(
         data.name,
         data.regNumber || "",
@@ -162,18 +146,19 @@ const RegisterForm: React.FC = () => {
     setError(null);
     
     try {
-      // Default test credentials
+      // Default test credentials with random values to avoid conflicts
+      const timestamp = new Date().getTime().toString().slice(-6);
       const testData = userType === 'student' 
         ? {
             name: "Test Student",
-            email: "test.student@example.com",
-            regNumber: "221000" + Math.floor(Math.random() * 1000).toString().padStart(3, '0'),
+            email: `test.student.${timestamp}@example.com`,
+            regNumber: "221" + timestamp,
             password: "password123",
             role: "student" as UserRole
           }
         : {
             name: "Test Admin",
-            email: "test.admin" + Math.floor(Math.random() * 1000) + "@example.com",
+            email: `test.admin.${timestamp}@example.com`,
             regNumber: "",
             password: "password123",
             role: "admin" as UserRole
