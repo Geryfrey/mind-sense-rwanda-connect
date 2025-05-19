@@ -39,25 +39,35 @@ const AuthContext = createContext<AuthContextType>({
 const mapSupabaseUser = async (supabaseUser: SupabaseUser): Promise<User | null> => {
   if (!supabaseUser) return null;
   
-  // Fetch the user's profile from our profiles table
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', supabaseUser.id)
-    .single();
-  
-  if (error || !profile) {
-    console.error("Error fetching user profile:", error);
+  try {
+    // Fetch the user's profile from our profiles table
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('name, role')
+      .eq('id', supabaseUser.id)
+      .single();
+    
+    if (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
+    }
+    
+    if (!profile) {
+      console.error("No profile found for user:", supabaseUser.id);
+      return null;
+    }
+    
+    return {
+      id: supabaseUser.id,
+      name: profile.name || supabaseUser.email?.split('@')[0] || 'User',
+      email: supabaseUser.email || '',
+      regNumber: supabaseUser.user_metadata.regNumber,
+      role: profile.role as UserRole
+    };
+  } catch (error) {
+    console.error("Error in mapSupabaseUser:", error);
     return null;
   }
-  
-  return {
-    id: supabaseUser.id,
-    name: profile.name || supabaseUser.email?.split('@')[0] || 'User',
-    email: supabaseUser.email || '',
-    regNumber: supabaseUser.user_metadata.regNumber,
-    role: profile.role as UserRole
-  };
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -68,38 +78,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check if user is already logged in
   useEffect(() => {
     const initializeAuth = async () => {
-      // Set up the auth state change listener first
-      const { data: authListener } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (event === 'SIGNED_OUT') {
-            setUser(null);
-            navigate('/login');
-            return;
+      try {
+        // Set up the auth state change listener first
+        const { data: authListener } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log("Auth state changed:", event, session?.user?.id);
+            
+            if (event === 'SIGNED_OUT') {
+              setUser(null);
+              navigate('/login');
+              return;
+            }
+            
+            if (session?.user) {
+              try {
+                const mappedUser = await mapSupabaseUser(session.user);
+                setUser(mappedUser);
+              } catch (error) {
+                console.error("Error mapping user after auth state change:", error);
+                setUser(null);
+              }
+            } else {
+              setUser(null);
+            }
+            
+            setIsLoading(false);
           }
-          
-          if (session?.user) {
+        );
+
+        // Then check for an existing session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          try {
+            console.log("Existing session found for user:", session.user.id);
             const mappedUser = await mapSupabaseUser(session.user);
             setUser(mappedUser);
-          } else {
+          } catch (error) {
+            console.error("Error mapping user from existing session:", error);
             setUser(null);
           }
-          
-          setIsLoading(false);
         }
-      );
-
-      // Then check for an existing session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const mappedUser = await mapSupabaseUser(session.user);
-        setUser(mappedUser);
+        
+        setIsLoading(false);
+        
+        return () => {
+          authListener.subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error("Error in initializeAuth:", error);
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
-      
-      return () => {
-        authListener.subscription.unsubscribe();
-      };
     };
     
     initializeAuth();
@@ -119,6 +148,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email = identifier;
       }
       
+      console.log(`Attempting to login with email: ${email}`);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -131,22 +162,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // User login successful
       if (data.user) {
-        const mappedUser = await mapSupabaseUser(data.user);
-        
-        if (!mappedUser) {
+        try {
+          console.log("Login successful for user:", data.user.id);
+          const mappedUser = await mapSupabaseUser(data.user);
+          
+          if (!mappedUser) {
+            console.error("Could not map user after login");
+            return false;
+          }
+          
+          setUser(mappedUser);
+          
+          // Navigate based on role
+          if (mappedUser.role === "admin") {
+            navigate("/admin");
+          } else {
+            navigate("/student");
+          }
+          
+          return true;
+        } catch (error) {
+          console.error("Error mapping user after login:", error);
           return false;
         }
-        
-        setUser(mappedUser);
-        
-        // Navigate based on role
-        if (mappedUser.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/student");
-        }
-        
-        return true;
       }
       
       return false;
@@ -168,6 +206,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // For students, we use registration number as part of the email
       // For admins, we use their actual email
       const authEmail = role === "student" ? `${regNumber}@example.com` : email;
+      
+      console.log(`Attempting to register with email: ${authEmail}, role: ${role}`);
       
       // Register the user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
@@ -192,22 +232,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Wait a moment for the trigger to complete
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const mappedUser = await mapSupabaseUser(data.user);
-        
-        if (!mappedUser) {
+        try {
+          console.log("Registration successful for user:", data.user.id);
+          const mappedUser = await mapSupabaseUser(data.user);
+          
+          if (!mappedUser) {
+            console.error("Could not map user after registration");
+            return false;
+          }
+          
+          setUser(mappedUser);
+          
+          // Navigate based on role
+          if (mappedUser.role === "admin") {
+            navigate("/admin");
+          } else {
+            navigate("/student");
+          }
+          
+          return true;
+        } catch (error) {
+          console.error("Error mapping user after registration:", error);
           return false;
         }
-        
-        setUser(mappedUser);
-        
-        // Navigate based on role
-        if (mappedUser.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/student");
-        }
-        
-        return true;
       }
       
       return false;

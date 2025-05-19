@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
 // Form schema validation with conditional validation for regNumber
 const registerSchema = z.object({
@@ -78,6 +79,30 @@ const RegisterForm: React.FC = () => {
     setError(null);
 
     try {
+      console.log("Attempting registration with:", {
+        name: data.name,
+        regNumber: data.regNumber || "",
+        email: data.email,
+        role: data.role
+      });
+      
+      // For students, check if the registration number is already used
+      if (data.role === "student") {
+        const studentEmail = `${data.regNumber}@example.com`;
+        const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(studentEmail);
+        
+        if (existingUser) {
+          setError(`Registration number ${data.regNumber} is already registered. Please use another or contact support.`);
+          toast({
+            title: "Registration failed",
+            description: "Registration number already in use",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      
       const success = await register(
         data.name,
         data.regNumber || "",
@@ -95,9 +120,9 @@ const RegisterForm: React.FC = () => {
       } else {
         // Show more specific error messages based on role
         if (data.role === "student") {
-          setError("This registration number is already registered. Please use another or contact support.");
+          setError(`Registration number ${data.regNumber} is already registered. Please use another or contact support.`);
         } else {
-          setError("This email address is already registered. Please use another or try resetting your password.");
+          setError(`Email address ${data.email} is already registered. Please use another or try resetting your password.`);
         }
         toast({
           title: "Registration failed",
@@ -107,14 +132,80 @@ const RegisterForm: React.FC = () => {
           variant: "destructive",
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Registration error:", err);
-      setError("An error occurred during registration. Please try again.");
+      
+      // Check if the error is related to a duplicate user
+      if (err.message?.includes("already registered") || err.message?.includes("already exists")) {
+        if (selectedRole === "student") {
+          setError(`Registration number ${form.getValues("regNumber")} is already registered. Please use another number.`);
+        } else {
+          setError(`Email ${form.getValues("email")} is already registered. Please use another email address.`);
+        }
+      } else {
+        setError("An error occurred during registration. Please try again.");
+      }
+      
       toast({
         title: "Registration error",
         description: "There was a problem with your registration. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Development helper function - only for testing purposes
+  const registerAsTestUser = async (userType: 'student' | 'admin') => {
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      // Default test credentials
+      const testData = userType === 'student' 
+        ? {
+            name: "Test Student",
+            email: "test.student@example.com",
+            regNumber: "221000" + Math.floor(Math.random() * 1000).toString().padStart(3, '0'),
+            password: "password123",
+            role: "student" as UserRole
+          }
+        : {
+            name: "Test Admin",
+            email: "test.admin" + Math.floor(Math.random() * 1000) + "@example.com",
+            regNumber: "",
+            password: "password123",
+            role: "admin" as UserRole
+          };
+      
+      console.log(`Development registration: Attempting to register test ${userType} with:`, testData);
+      
+      const success = await register(
+        testData.name,
+        testData.regNumber,
+        testData.email,
+        testData.password,
+        testData.role
+      );
+      
+      if (success) {
+        toast({
+          title: "Test registration successful",
+          description: `Registered as test ${userType}`,
+        });
+        navigate("/dashboard");
+      } else {
+        setError(`Could not register test ${userType}`);
+        toast({
+          title: "Test registration failed",
+          description: `Could not register as test ${userType}`,
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("Test registration error:", err);
+      setError(`An error occurred during test ${userType} registration`);
     } finally {
       setIsSubmitting(false);
     }
@@ -243,6 +334,36 @@ const RegisterForm: React.FC = () => {
             </Button>
           </form>
         </Form>
+        
+        {/* Development tools section */}
+        {import.meta.env.DEV && (
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Development Accounts</h3>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 text-xs"
+                onClick={() => registerAsTestUser('student')}
+                disabled={isSubmitting}
+              >
+                Create Test Student
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 text-xs"
+                onClick={() => registerAsTestUser('admin')}
+                disabled={isSubmitting}
+              >
+                Create Test Admin
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              These buttons create random test accounts with password: password123
+            </p>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
