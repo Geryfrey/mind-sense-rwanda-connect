@@ -69,33 +69,22 @@ const AdminExportReports: React.FC = () => {
     try {
       const { start, end } = getDateRange(timeframe);
       
-      let query = supabase
+      // First get assessments
+      let assessmentQuery = supabase
         .from('assessments')
-        .select(`
-          id,
-          user_id,
-          stress_score,
-          anxiety_score,
-          depression_score,
-          created_at,
-          profiles!inner (
-            name,
-            email,
-            reg_number
-          )
-        `)
+        .select('id, user_id, stress_score, anxiety_score, depression_score, created_at')
         .order('created_at', { ascending: false });
 
       if (timeframe !== "all") {
-        query = query
+        assessmentQuery = assessmentQuery
           .gte('created_at', start)
           .lte('created_at', end);
       }
 
-      const { data, error } = await query;
+      const { data: assessmentData, error: assessmentError } = await assessmentQuery;
 
-      if (error) {
-        console.error("Error fetching assessments:", error);
+      if (assessmentError) {
+        console.error("Error fetching assessments:", assessmentError);
         toast({
           title: "Error",
           description: "Failed to fetch assessment data.",
@@ -104,7 +93,29 @@ const AdminExportReports: React.FC = () => {
         return;
       }
 
-      setAssessments(data || []);
+      // Then get profiles for each user
+      const userIds = [...new Set(assessmentData?.map(a => a.user_id) || [])];
+      
+      if (userIds.length > 0) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('user_id, name, email, reg_number')
+          .in('user_id', userIds);
+
+        if (profileError) {
+          console.error("Error fetching profiles:", profileError);
+        }
+
+        // Combine the data
+        const combinedData = assessmentData?.map(assessment => ({
+          ...assessment,
+          profiles: profileData?.find(p => p.user_id === assessment.user_id) || null
+        })) || [];
+
+        setAssessments(combinedData);
+      } else {
+        setAssessments([]);
+      }
     } catch (error) {
       console.error("Error in fetchAssessments:", error);
       toast({

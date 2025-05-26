@@ -77,13 +77,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         
         if (session?.user) {
-          const profile = await getUserProfile(session.user.id);
-          setUser(profile);
+          // Use setTimeout to prevent auth callback deadlock
+          setTimeout(async () => {
+            const profile = await getUserProfile(session.user.id);
+            setUser(profile);
+            setIsLoading(false);
+          }, 0);
         } else {
           setUser(null);
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
       }
     );
 
@@ -91,9 +94,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
-        getUserProfile(session.user.id).then(setUser);
+        getUserProfile(session.user.id).then((profile) => {
+          setUser(profile);
+          setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -102,6 +109,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Login function
   const login = async (identifier: string, password: string, loginType = "student"): Promise<boolean> => {
     try {
+      console.log("Login attempt:", { identifier, loginType });
+      
       // For student login, we need to find the email by registration number
       let email = identifier;
       
@@ -118,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return false;
         }
         email = profile.email;
+        console.log("Found student email:", email);
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -133,12 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         const profile = await getUserProfile(data.user.id);
         if (profile && profile.role === loginType) {
-          // Navigate based on role
-          if (profile.role === "admin") {
-            navigate("/admin");
-          } else {
-            navigate("/student");
-          }
+          // Navigation will be handled by auth state change
           return true;
         }
       }
@@ -177,12 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        // Navigate based on role
-        if (role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/student");
-        }
+        // Navigation will be handled by auth state change
         return true;
       }
       
@@ -204,6 +204,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Logout error:", error);
     }
   };
+
+  // Navigate based on user role when user state changes
+  useEffect(() => {
+    if (user && !isLoading) {
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/student");
+      }
+    }
+  }, [user, isLoading, navigate]);
 
   return (
     <AuthContext.Provider
