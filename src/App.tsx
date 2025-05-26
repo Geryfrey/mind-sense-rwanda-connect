@@ -19,64 +19,62 @@ import UnauthorizedPage from "./pages/UnauthorizedPage";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <MLProvider>
-              <Routes>
-                {/* Landing Page */}
-                <Route path="/" element={<LandingPage />} />
-                
-                {/* Auth Routes */}
-                <Route path="/login" element={<AuthPage />} />
-                <Route path="/register" element={<AuthPage />} />
-                
-                {/* Student Dashboard Routes - All student routes under /student/* */}
-                <Route path="/student/*" element={
-                  <RequireAuth allowedRoles={["student"]}>
-                    <StudentDashboardPage />
-                  </RequireAuth>
-                } />
-                
-                {/* Admin Dashboard Routes - All admin routes under /admin/* */}
-                <Route path="/admin/*" element={
-                  <RequireAuth allowedRoles={["admin"]}>
-                    <AdminDashboardPage />
-                  </RequireAuth>
-                } />
-                
-                {/* Legacy routes - redirect to new structure */}
-                <Route path="/dashboard" element={
-                  <RequireAuth>
-                    {({ user }) => user?.role === "admin" ? 
-                      <Navigate to="/admin" replace /> : 
-                      <Navigate to="/student" replace />
-                    }
-                  </RequireAuth>
-                } />
-                <Route path="/dashboard/*" element={
-                  <RequireAuth>
-                    {({ user }) => user?.role === "admin" ? 
-                      <Navigate to="/admin" replace /> : 
-                      <Navigate to="/student" replace />
-                    }
-                  </RequireAuth>
-                } />
-                
-                {/* Other Routes */}
-                <Route path="/unauthorized" element={<UnauthorizedPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </MLProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <MLProvider>
+            <Routes>
+              {/* Landing Page */}
+              <Route path="/" element={<LandingPage />} />
+              
+              {/* Auth Routes */}
+              <Route path="/login" element={<AuthPage />} />
+              <Route path="/register" element={<AuthPage />} />
+              
+              {/* Student Dashboard Routes - All student routes under /student/* */}
+              <Route path="/student/*" element={
+                <RequireAuth allowedRoles={["student"]}>
+                  <StudentDashboardPage />
+                </RequireAuth>
+              } />
+              
+              {/* Admin Dashboard Routes - All admin routes under /admin/* */}
+              <Route path="/admin/*" element={
+                <RequireAuth allowedRoles={["admin"]}>
+                  <AdminDashboardPage />
+                </RequireAuth>
+              } />
+              
+              {/* Legacy routes - redirect to new structure */}
+              <Route path="/dashboard" element={
+                <RequireAuth>
+                  {({ user }) => user?.role === "admin" ? 
+                    <Navigate to="/admin" replace /> : 
+                    <Navigate to="/student" replace />
+                  }
+                </RequireAuth>
+              } />
+              <Route path="/dashboard/*" element={
+                <RequireAuth>
+                  {({ user }) => user?.role === "admin" ? 
+                    <Navigate to="/admin" replace /> : 
+                    <Navigate to="/student" replace />
+                  }
+                </RequireAuth>
+              } />
+              
+              {/* Other Routes */}
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MLProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
 export default App;

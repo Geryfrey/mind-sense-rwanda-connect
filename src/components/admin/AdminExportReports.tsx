@@ -17,10 +17,10 @@ interface AssessmentData {
   depression_score: number;
   created_at: string;
   profiles?: {
-    name: string;
+    name: string | null;
     email: string;
     reg_number: string | null;
-  };
+  } | null;
 }
 
 const AdminExportReports: React.FC = () => {
@@ -72,8 +72,13 @@ const AdminExportReports: React.FC = () => {
       let query = supabase
         .from('assessments')
         .select(`
-          *,
-          profiles (
+          id,
+          user_id,
+          stress_score,
+          anxiety_score,
+          depression_score,
+          created_at,
+          profiles!inner (
             name,
             email,
             reg_number
