@@ -23,22 +23,36 @@ interface AuthContextType {
   logout: () => void;
 }
 
-// Mock users for demo
-const mockUsers: User[] = [
+// Mock users for demo - using a Map for better performance
+const mockUsersMap = new Map<string, User & { password: string }>();
+
+// Initialize with some default users
+const defaultUsers = [
   {
     id: "1",
     name: "Test Student",
     email: "220014748@example.com",
     regNumber: "220014748",
-    role: "student"
+    role: "student" as UserRole,
+    password: "password123"
   },
   {
     id: "2",
     name: "Admin User",
     email: "admin@example.com",
-    role: "admin"
+    role: "admin" as UserRole,
+    password: "password123"
   }
 ];
+
+// Populate the map
+defaultUsers.forEach(user => {
+  if (user.role === "student" && user.regNumber) {
+    mockUsersMap.set(`student:${user.regNumber}`, user);
+  } else {
+    mockUsersMap.set(`admin:${user.email}`, user);
+  }
+});
 
 // Create auth context with default values
 const AuthContext = createContext<AuthContextType>({
@@ -60,7 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
       } catch (error) {
         console.error("Error parsing stored user:", error);
         localStorage.removeItem('user');
@@ -69,28 +84,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  // Login function - now just checks against mock users
+  // Login function
   const login = async (identifier: string, password: string, loginType = "student"): Promise<boolean> => {
     try {
-      // Simple mock authentication logic
-      let user;
+      console.log("Attempting login with:", { identifier, loginType });
       
-      if (loginType === "student") {
-        // For students, use registration number
-        user = mockUsers.find(u => u.regNumber === identifier);
-      } else {
-        // For admins, use email
-        user = mockUsers.find(u => u.email === identifier);
-      }
+      const key = `${loginType}:${identifier}`;
+      const storedUser = mockUsersMap.get(key);
       
-      // In a real app, you would check the password
-      // Here we just accept "password123" for all users
-      if (user && password === "password123") {
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
+      if (storedUser && storedUser.password === password) {
+        const { password: _, ...userWithoutPassword } = storedUser;
+        setUser(userWithoutPassword);
+        localStorage.setItem('user', JSON.stringify(userWithoutPassword));
         
         // Navigate based on role
-        if (user.role === "admin") {
+        if (userWithoutPassword.role === "admin") {
           navigate("/admin");
         } else {
           navigate("/student");
@@ -106,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Register function - now just adds to local storage
+  // Register function
   const register = async (
     name: string,
     regNumber: string, 
@@ -115,36 +123,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     role: UserRole
   ): Promise<boolean> => {
     try {
+      const key = role === "student" ? `student:${regNumber}` : `admin:${email}`;
+      
       // Check if user already exists
-      if (role === "student") {
-        const exists = mockUsers.some(u => u.regNumber === regNumber);
-        if (exists) {
-          console.error("Registration number already in use");
-          return false;
-        }
-      } else {
-        const exists = mockUsers.some(u => u.email === email);
-        if (exists) {
-          console.error("Email already in use");
-          return false;
-        }
+      if (mockUsersMap.has(key)) {
+        console.error("User already exists");
+        return false;
       }
       
       // Create new user
-      const newUser: User = {
-        id: Date.now().toString(), // Simple unique ID
+      const newUser = {
+        id: Date.now().toString(),
         name,
         email,
         regNumber: role === "student" ? regNumber : undefined,
-        role
+        role,
+        password
       };
       
-      // Add to mock users array (in a real app, this would be saved to a database)
-      mockUsers.push(newUser);
+      // Add to mock users map
+      mockUsersMap.set(key, newUser);
       
       // Log in the new user
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      const { password: _, ...userWithoutPassword } = newUser;
+      setUser(userWithoutPassword);
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
       
       // Navigate based on role
       if (newUser.role === "admin") {
@@ -193,7 +196,6 @@ export const RequireAuth: React.FC<{
 }> = ({ children, allowedRoles = ["student", "admin"] }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     if (!isLoading) {

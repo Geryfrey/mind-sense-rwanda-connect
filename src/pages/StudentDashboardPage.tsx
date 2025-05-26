@@ -1,50 +1,93 @@
 
-import React, { useEffect } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useML } from "@/context/MLContext";
-import { useLocation, useNavigate } from "react-router-dom";
+import StudentSidebar from "@/components/student/StudentSidebar";
 import AssessmentForm from "@/components/assessment/AssessmentForm";
 import AssessmentHistory from "@/components/assessment/AssessmentHistory";
 import ReferralsPage from "@/components/referrals/ReferralsPage";
 import ResourcesPage from "@/components/resources/ResourcesPage";
-import { LogOut, UserCircle, CheckCircle, Menu, X, History, BookOpen, Globe } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+// Student dashboard pages
+const StudentHome: React.FC = () => {
+  const { user } = useAuth();
+  
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name}</h1>
+        <p className="text-gray-600 mt-2">Monitor your mental health and access support resources</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg mb-2">Quick Assessment</h3>
+            <p className="text-gray-600 text-sm mb-4">Take a quick mental health check</p>
+            <Button className="w-full">Start Assessment</Button>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg mb-2">Recent Results</h3>
+            <p className="text-gray-600 text-sm mb-4">View your latest assessment results</p>
+            <Button variant="outline" className="w-full">View Results</Button>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg mb-2">Resources</h3>
+            <p className="text-gray-600 text-sm mb-4">Access mental health resources</p>
+            <Button variant="outline" className="w-full">Browse Resources</Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+const StudentJournal: React.FC = () => (
+  <div className="space-y-6">
+    <h1 className="text-3xl font-bold text-gray-900">Journal / Notes</h1>
+    <Card>
+      <CardContent className="p-6">
+        <p className="text-gray-600">Journal functionality coming soon...</p>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const StudentAppointments: React.FC = () => (
+  <div className="space-y-6">
+    <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
+    <Card>
+      <CardContent className="p-6">
+        <p className="text-gray-600">Appointment booking functionality coming soon...</p>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const StudentSettings: React.FC = () => (
+  <div className="space-y-6">
+    <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+    <Card>
+      <CardContent className="p-6">
+        <p className="text-gray-600">Settings panel coming soon...</p>
+      </CardContent>
+    </Card>
+  </div>
+);
 
 const StudentDashboardPage: React.FC = () => {
-  const { user, logout } = useAuth();
   const { loadModel, isModelLoaded } = useML();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  // Determine active tab based on current path
-  const getActiveTab = () => {
-    const path = location.pathname;
-    if (path.includes('/history')) return 'history';
-    if (path.includes('/referrals')) return 'referrals';
-    if (path.includes('/resources')) return 'resources';
-    return 'assessment';
-  };
-  
-  // Handle tab change to update URL
-  const handleTabChange = (value: string) => {
-    switch(value) {
-      case 'history':
-        navigate('/student/history');
-        break;
-      case 'referrals':
-        navigate('/student/referrals');
-        break;
-      case 'resources':
-        navigate('/student/resources');
-        break;
-      default:
-        navigate('/student');
-        break;
-    }
-  };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   useEffect(() => {
     // Load the ML model when the dashboard loads
@@ -54,95 +97,30 @@ const StudentDashboardPage: React.FC = () => {
   }, [loadModel, isModelLoaded]);
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-blue-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <CheckCircle className="h-6 w-6 text-purple-600 mr-2" />
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">VARP</h1>
-          </div>
-          
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="flex items-center text-sm">
-              <UserCircle className="h-5 w-5 mr-1 text-gray-500" />
-              <span className="font-medium">{user?.name}</span>
-              <span className="ml-2 text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 capitalize">
-                {user?.role}
-              </span>
-            </div>
-            <Button variant="outline" size="sm" onClick={logout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-          
-          <button
-            className="md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
-        </div>
-        
-        {/* Mobile menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden bg-white shadow-lg px-4 py-3 space-y-2">
-            <div className="flex items-center justify-between py-2">
-              <div className="flex items-center text-sm">
-                <UserCircle className="h-5 w-5 mr-1 text-gray-500" />
-                <span className="font-medium">{user?.name}</span>
-              </div>
-              <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 capitalize">
-                {user?.role}
-              </span>
-            </div>
-            <Button variant="outline" size="sm" className="w-full" onClick={logout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        )}
-      </header>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <StudentSidebar 
+        isOpen={sidebarOpen} 
+        onToggle={() => setSidebarOpen(!sidebarOpen)} 
+      />
       
       {/* Main content */}
-      <main className="container mx-auto px-4 py-6 md:py-8">
-        <Tabs
-          value={getActiveTab()}
-          onValueChange={handleTabChange}
-          className="space-y-6"
-        >
-          <div className="bg-white p-1 rounded-lg shadow-sm">
-            <TabsList className="w-full grid grid-cols-4">
-              <TabsTrigger value="assessment" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Assessment</span>
-                <span className="sm:hidden">Assess</span>
-              </TabsTrigger>
-              <TabsTrigger value="history" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
-                <History className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">History</span>
-                <span className="sm:hidden">History</span>
-              </TabsTrigger>
-              <TabsTrigger value="referrals" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
-                <Globe className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Referrals</span>
-                <span className="sm:hidden">Refer</span>
-              </TabsTrigger>
-              <TabsTrigger value="resources" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800">
-                <BookOpen className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Resources</span>
-                <span className="sm:hidden">Learn</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-          
-          {!isModelLoaded && getActiveTab() === 'assessment' && (
-            <Card>
+      <div className="flex-1 flex flex-col lg:ml-72">
+        {/* Mobile header */}
+        <header className="lg:hidden bg-white shadow-sm border-b border-gray-200 p-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </header>
+        
+        {/* Content area */}
+        <main className="flex-1 overflow-auto p-6">
+          {!isModelLoaded && (
+            <Card className="mb-6">
               <CardContent className="py-4">
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse"></div>
@@ -152,32 +130,21 @@ const StudentDashboardPage: React.FC = () => {
             </Card>
           )}
           
-          <TabsContent value="assessment">
-            <AssessmentForm />
-          </TabsContent>
-          
-          <TabsContent value="history">
-            <AssessmentHistory />
-          </TabsContent>
-          
-          <TabsContent value="referrals">
-            <ReferralsPage />
-          </TabsContent>
-          
-          <TabsContent value="resources">
-            <ResourcesPage />
-          </TabsContent>
-        </Tabs>
-      </main>
-      
-      {/* Footer */}
-      <footer className="bg-white border-t mt-8">
-        <div className="container mx-auto px-4 py-4">
-          <p className="text-center text-sm text-gray-500">
-            Virtual Assessment & Referral Platform (VARP) - A mental health initiative for students
-          </p>
-        </div>
-      </footer>
+          <Routes>
+            <Route path="/" element={<StudentHome />} />
+            <Route path="/check-mental-health" element={<AssessmentForm />} />
+            <Route path="/results" element={<AssessmentHistory />} />
+            <Route path="/journal" element={<StudentJournal />} />
+            <Route path="/resources" element={<ResourcesPage />} />
+            <Route path="/appointments" element={<StudentAppointments />} />
+            <Route path="/settings" element={<StudentSettings />} />
+            {/* Legacy routes */}
+            <Route path="/history" element={<Navigate to="/student/results" replace />} />
+            <Route path="/referrals" element={<ReferralsPage />} />
+            <Route path="*" element={<Navigate to="/student" replace />} />
+          </Routes>
+        </main>
+      </div>
     </div>
   );
 };

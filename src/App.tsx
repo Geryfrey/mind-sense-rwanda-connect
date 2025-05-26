@@ -35,30 +35,15 @@ const App = () => (
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/register" element={<AuthPage />} />
                 
-                {/* Student Dashboard Routes */}
-                <Route path="/student" element={
-                  <RequireAuth allowedRoles={["student"]}>
-                    <StudentDashboardPage />
-                  </RequireAuth>
-                } />
-                <Route path="/student/history" element={
-                  <RequireAuth allowedRoles={["student"]}>
-                    <StudentDashboardPage />
-                  </RequireAuth>
-                } />
-                <Route path="/student/referrals" element={
-                  <RequireAuth allowedRoles={["student"]}>
-                    <StudentDashboardPage />
-                  </RequireAuth>
-                } />
-                <Route path="/student/resources" element={
+                {/* Student Dashboard Routes - All student routes under /student/* */}
+                <Route path="/student/*" element={
                   <RequireAuth allowedRoles={["student"]}>
                     <StudentDashboardPage />
                   </RequireAuth>
                 } />
                 
-                {/* Admin Dashboard Routes */}
-                <Route path="/admin" element={
+                {/* Admin Dashboard Routes - All admin routes under /admin/* */}
+                <Route path="/admin/*" element={
                   <RequireAuth allowedRoles={["admin"]}>
                     <AdminDashboardPage />
                   </RequireAuth>
