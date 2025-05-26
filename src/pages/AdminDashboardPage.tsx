@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminDashboard from "@/components/admin/AdminDashboard";
+import AdminExportReports from "@/components/admin/AdminExportReports";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,17 +38,6 @@ const AdminAnalytics: React.FC = () => (
     <Card>
       <CardContent className="p-6">
         <p className="text-gray-600">Analytics functionality coming soon...</p>
-      </CardContent>
-    </Card>
-  </div>
-);
-
-const AdminReports: React.FC = () => (
-  <div className="space-y-6">
-    <h1 className="text-3xl font-bold text-gray-900">Export Reports</h1>
-    <Card>
-      <CardContent className="p-6">
-        <p className="text-gray-600">Report export functionality coming soon...</p>
       </CardContent>
     </Card>
   </div>
@@ -106,7 +96,7 @@ const AdminDashboardPage: React.FC = () => {
             <Route path="/students" element={<AdminStudents />} />
             <Route path="/predictions" element={<AdminPredictions />} />
             <Route path="/analytics" element={<AdminAnalytics />} />
-            <Route path="/reports" element={<AdminReports />} />
+            <Route path="/reports" element={<AdminExportReports />} />
             <Route path="/model-feedback" element={<AdminModelFeedback />} />
             <Route path="/settings" element={<AdminSettings />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />

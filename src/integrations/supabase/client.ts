@@ -1,23 +1,14 @@
 
-// This file is a placeholder for the removed Supabase client
-// It exists only to prevent import errors in existing code
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from './types'
 
-export const supabase = {
-  // Mock methods to prevent errors when called
+const supabaseUrl = "https://bxownsyanecfszaktxis.supabase.co"
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4b3duc3lhbmVjZnN6YWt0eGlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDczMzA1MTksImV4cCI6MjA2MjkwNjUxOX0.4hiEIma-HhZr0lTy2glyB32Hzye5LgtzVpXih6zMJ1g"
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
-    getSession: async () => ({ data: { session: null } }),
-    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-    signInWithPassword: async () => ({ data: {}, error: { message: 'Supabase auth removed' } }),
-    signUp: async () => ({ data: {}, error: { message: 'Supabase auth removed' } }),
-    signOut: async () => {}
-  },
-  from: () => ({
-    select: () => ({
-      eq: () => ({
-        single: async () => ({ data: null, error: { message: 'Supabase removed' } }),
-        maybeSingle: async () => ({ data: null, error: { message: 'Supabase removed' } }),
-        ilike: () => ({})
-      })
-    })
-  })
-};
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+})

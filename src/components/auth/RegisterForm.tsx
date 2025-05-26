@@ -78,13 +78,6 @@ const RegisterForm: React.FC = () => {
     setError(null);
 
     try {
-      console.log("Attempting registration with:", {
-        name: data.name,
-        regNumber: data.regNumber || "",
-        email: data.email,
-        role: data.role
-      });
-      
       const success = await register(
         data.name,
         data.regNumber || "",
@@ -100,95 +93,25 @@ const RegisterForm: React.FC = () => {
         });
         // Navigation is handled in the AuthContext
       } else {
-        // Show more specific error messages based on role
         if (data.role === "student") {
-          setError(`Registration number ${data.regNumber} is already registered. Please use another or contact support.`);
+          setError(`Registration number ${data.regNumber} might already be registered or there was an error. Please try again.`);
         } else {
-          setError(`Email address ${data.email} is already registered. Please use another or try resetting your password.`);
+          setError(`Email address ${data.email} might already be registered or there was an error. Please try again.`);
         }
         toast({
           title: "Registration failed",
-          description: data.role === "student" 
-            ? "Registration number already in use" 
-            : "Email address already in use",
+          description: "There was an error creating your account. Please try again.",
           variant: "destructive",
         });
       }
     } catch (err: any) {
       console.error("Registration error:", err);
-      
-      // Check if the error is related to a duplicate user
-      if (err.message?.includes("already registered") || err.message?.includes("already exists")) {
-        if (selectedRole === "student") {
-          setError(`Registration number ${form.getValues("regNumber")} is already registered. Please use another number.`);
-        } else {
-          setError(`Email ${form.getValues("email")} is already registered. Please use another email address.`);
-        }
-      } else {
-        setError("An error occurred during registration. Please try again.");
-      }
-      
+      setError("An error occurred during registration. Please try again.");
       toast({
         title: "Registration error",
         description: "There was a problem with your registration. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Helper function for demo registration
-  const registerAsTestUser = async (userType: 'student' | 'admin') => {
-    setIsSubmitting(true);
-    setError(null);
-    
-    try {
-      // Default test credentials with random values to avoid conflicts
-      const timestamp = new Date().getTime().toString().slice(-6);
-      const testData = userType === 'student' 
-        ? {
-            name: "Test Student",
-            email: `test.student.${timestamp}@example.com`,
-            regNumber: "221" + timestamp,
-            password: "password123",
-            role: "student" as UserRole
-          }
-        : {
-            name: "Test Admin",
-            email: `test.admin.${timestamp}@example.com`,
-            regNumber: "",
-            password: "password123",
-            role: "admin" as UserRole
-          };
-      
-      console.log(`Demo registration: Attempting to register test ${userType} with:`, testData);
-      
-      const success = await register(
-        testData.name,
-        testData.regNumber,
-        testData.email,
-        testData.password,
-        testData.role
-      );
-      
-      if (success) {
-        toast({
-          title: "Test registration successful",
-          description: `Registered as test ${userType}`,
-        });
-        // Navigation is handled in the AuthContext
-      } else {
-        setError(`Could not register test ${userType}`);
-        toast({
-          title: "Test registration failed",
-          description: `Could not register as test ${userType}`,
-          variant: "destructive",
-        });
-      }
-    } catch (err) {
-      console.error("Test registration error:", err);
-      setError(`An error occurred during test ${userType} registration`);
     } finally {
       setIsSubmitting(false);
     }
@@ -261,7 +184,7 @@ const RegisterForm: React.FC = () => {
                       <Input placeholder="e.g. 220014748" {...field} />
                     </FormControl>
                     <FormDescription className="text-xs">
-                      Enter your University of Rwanda registration number (e.g. 220014748, 221022348, 221000780)
+                      Enter your University of Rwanda registration number
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -317,34 +240,6 @@ const RegisterForm: React.FC = () => {
             </Button>
           </form>
         </Form>
-        
-        {/* Demo account creation section */}
-        <div className="mt-8 pt-4 border-t border-gray-200">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Demo Accounts</h3>
-          <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex-1 text-xs"
-              onClick={() => registerAsTestUser('student')}
-              disabled={isSubmitting}
-            >
-              Create Test Student
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex-1 text-xs"
-              onClick={() => registerAsTestUser('admin')}
-              disabled={isSubmitting}
-            >
-              Create Test Admin
-            </Button>
-          </div>
-          <p className="text-xs text-gray-500 mt-2">
-            These buttons create random test accounts with password: password123
-          </p>
-        </div>
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
