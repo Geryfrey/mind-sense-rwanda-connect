@@ -14,7 +14,6 @@ import {
   X,
   HeartHandshake
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 
 interface AdminSidebarProps {
@@ -23,7 +22,6 @@ interface AdminSidebarProps {
 }
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
-  const { user, logout } = useAuth();
   const location = useLocation();
 
   const menuItems = [
@@ -41,6 +39,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
+  };
+
+  const handleLogout = () => {
+    window.location.href = "/";
   };
 
   return (
@@ -81,8 +83,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
           
           {/* User info */}
           <div className="mt-4 p-3 bg-indigo-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-            <p className="text-xs text-gray-500">{user?.email}</p>
+            <p className="text-sm font-medium text-gray-900">Admin Portal</p>
+            <p className="text-xs text-gray-500">System Administrator</p>
             <span className="inline-block mt-1 text-xs px-2 py-1 rounded-full bg-indigo-100 text-indigo-800">
               Administrator
             </span>
@@ -122,11 +124,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
         <div className="p-4 border-t border-gray-200">
           <Button
             variant="outline"
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full flex items-center justify-center space-x-2 text-red-600 border-red-200 hover:bg-red-50"
           >
             <LogOut className="h-4 w-4" />
-            <span>Logout</span>
+            <span>Back to Home</span>
           </Button>
         </div>
       </div>
