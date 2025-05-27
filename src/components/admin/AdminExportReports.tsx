@@ -18,7 +18,7 @@ interface AssessmentData {
   created_at: string;
   profiles?: {
     name: string | null;
-    email: string;
+    email: string | null;
     reg_number: string | null;
   } | null;
 }
@@ -99,8 +99,8 @@ const AdminExportReports: React.FC = () => {
       if (userIds.length > 0) {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('user_id, name, email, reg_number')
-          .in('user_id', userIds);
+          .select('id, name, email, reg_number')
+          .in('id', userIds);
 
         if (profileError) {
           console.error("Error fetching profiles:", profileError);
@@ -109,7 +109,7 @@ const AdminExportReports: React.FC = () => {
         // Combine the data
         const combinedData = assessmentData?.map(assessment => ({
           ...assessment,
-          profiles: profileData?.find(p => p.user_id === assessment.user_id) || null
+          profiles: profileData?.find(p => p.id === assessment.user_id) || null
         })) || [];
 
         setAssessments(combinedData);

@@ -45,27 +45,33 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
-          id: string
+          email: string | null
           name: string | null
+          reg_number: string | null
           role: string
           university: string | null
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
-          id: string
+          email?: string | null
           name?: string | null
+          reg_number?: string | null
           role?: string
           university?: string | null
           updated_at?: string
+          user_id: string
         }
         Update: {
           created_at?: string
-          id?: string
+          email?: string | null
           name?: string | null
+          reg_number?: string | null
           role?: string
           university?: string | null
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
