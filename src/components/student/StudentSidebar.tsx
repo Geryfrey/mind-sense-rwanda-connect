@@ -67,7 +67,7 @@ const StudentSidebar: React.FC<StudentSidebarProps> = ({ isOpen, onToggle }) => 
             <div className="flex items-center space-x-3">
               <CheckCircle className="h-8 w-8 text-purple-600" />
               <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
-                VARP
+                SWAP
               </h1>
             </div>
             <Button
@@ -83,7 +83,7 @@ const StudentSidebar: React.FC<StudentSidebarProps> = ({ isOpen, onToggle }) => 
           {/* User info */}
           <div className="mt-4 p-3 bg-purple-50 rounded-lg">
             <p className="text-sm font-medium text-gray-900">Student Portal</p>
-            <p className="text-xs text-gray-500">Mental Health Assessment Platform</p>
+            <p className="text-xs text-gray-500">Student Wellness Assessment Platform</p>
             <span className="inline-block mt-1 text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800">
               Student
             </span>

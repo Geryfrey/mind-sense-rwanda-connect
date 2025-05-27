@@ -68,7 +68,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
             <div className="flex items-center space-x-3">
               <HeartHandshake className="h-8 w-8 text-indigo-600" />
               <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-500">
-                VARP Admin
+                SWAP Admin
               </h1>
             </div>
             <Button

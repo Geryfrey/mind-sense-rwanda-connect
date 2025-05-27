@@ -39,7 +39,7 @@ const LandingPage = () => {
           <div className="flex items-center space-x-3">
             <HeartHandshake className="h-8 w-8 text-purple-600" />
             <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
-              VARP
+              SWAP
             </span>
           </div>
           <div className="space-x-4">
@@ -64,7 +64,7 @@ const LandingPage = () => {
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Virtual Assessment & Referral Platform
+            Student Wellness Assessment Platform
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Supporting mental health for Rwandan university students through AI-powered assessment, 
@@ -148,7 +148,7 @@ const LandingPage = () => {
             <div>
               <div className="flex items-center space-x-3 mb-4">
                 <HeartHandshake className="h-6 w-6 text-purple-400" />
-                <span className="text-xl font-bold">VARP</span>
+                <span className="text-xl font-bold">SWAP</span>
               </div>
               <p className="text-gray-400">
                 Supporting mental health for Rwandan university students.
@@ -183,7 +183,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 VARP. All rights reserved.</p>
+            <p>&copy; 2024 SWAP. All rights reserved.</p>
           </div>
         </div>
       </footer>
