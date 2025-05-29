@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
 
@@ -9,9 +9,8 @@ export type UserRole = "student" | "admin";
 
 export interface User {
   id: string;
-  name: string;
-  email: string;
   regNumber?: string;
+  email?: string;
   role: UserRole;
 }
 
@@ -20,8 +19,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (identifier: string, password: string, loginType?: string) => Promise<boolean>;
-  register: (name: string, regNumber: string, email: string, password: string, role: UserRole) => Promise<boolean>;
+  login: (identifier: string, password: string, loginType: UserRole) => Promise<boolean>;
+  register: (identifier: string, password: string, role: UserRole) => Promise<boolean>;
   logout: () => Promise<void>;
 }
 
@@ -46,8 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('id, name, email, reg_number, role')
-        .eq('id', userId)
+        .select('id, reg_number, email, role')
+        .eq('user_id', userId)
         .single();
 
       if (error) {
@@ -57,9 +56,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return {
         id: profile.id,
-        name: profile.name || "",
-        email: profile.email || "",
         regNumber: profile.reg_number || undefined,
+        email: profile.email || undefined,
         role: profile.role as UserRole,
       };
     } catch (error) {
@@ -107,27 +105,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Login function
-  const login = async (identifier: string, password: string, loginType = "student"): Promise<boolean> => {
+  const login = async (identifier: string, password: string, loginType: UserRole): Promise<boolean> => {
     try {
       console.log("Login attempt:", { identifier, loginType });
       
-      // For student login, we need to find the email by registration number
       let email = identifier;
       
+      // For student login, convert reg number to email format
       if (loginType === "student") {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('reg_number', identifier)
-          .eq('role', 'student')
-          .single();
-          
-        if (error || !profile) {
-          console.error("Student not found:", error);
+        // Validate registration number (9 digits starting with '2')
+        if (!/^2\d{8}$/.test(identifier)) {
+          console.error("Invalid registration number format");
           return false;
         }
-        email = profile.email;
-        console.log("Found student email:", email);
+        email = `${identifier}@ur.ac.rw`;
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -143,7 +134,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         const profile = await getUserProfile(data.user.id);
         if (profile && profile.role === loginType) {
-          // Navigation will be handled by auth state change
           return true;
         }
       }
@@ -157,21 +147,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Register function
   const register = async (
-    name: string,
-    regNumber: string, 
-    email: string, 
+    identifier: string,
     password: string, 
     role: UserRole
   ): Promise<boolean> => {
     try {
+      let email = identifier;
+      let regNumber: string | undefined;
+      
+      // For student signup, convert reg number to email format
+      if (role === "student") {
+        // Validate registration number (9 digits starting with '2')
+        if (!/^2\d{8}$/.test(identifier)) {
+          console.error("Invalid registration number format");
+          return false;
+        }
+        email = `${identifier}@ur.ac.rw`;
+        regNumber = identifier;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name,
             role,
-            reg_number: role === "student" ? regNumber : null,
+            reg_number: regNumber,
           }
         }
       });
@@ -182,7 +183,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        // Navigation will be handled by auth state change
         return true;
       }
       
@@ -199,7 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -248,7 +248,7 @@ export const RequireAuth: React.FC<{
       if (!isAuthenticated) {
         navigate("/login");
       } else if (user && !allowedRoles.includes(user.role)) {
-        navigate("/unauthorized");
+        navigate("/");
       }
     }
   }, [isLoading, isAuthenticated, user, allowedRoles, navigate]);

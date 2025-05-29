@@ -6,7 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/components/ui/use-toast";
 
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, UserRole } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,6 +32,19 @@ const loginSchema = z.object({
   loginType: z.enum(["student", "admin"]),
   identifier: z.string().min(1, "This field is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+}).refine((data) => {
+  // Validate student registration number format
+  if (data.loginType === "student" && !/^2\d{8}$/.test(data.identifier)) {
+    return false;
+  }
+  // Validate admin email format
+  if (data.loginType === "admin" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.identifier)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Invalid format for the selected login type",
+  path: ["identifier"],
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -59,7 +72,7 @@ const LoginForm: React.FC = () => {
     setError(null);
 
     try {
-      const success = await login(data.identifier, data.password, data.loginType);
+      const success = await login(data.identifier, data.password, data.loginType as UserRole);
       
       if (success) {
         toast({
@@ -150,7 +163,7 @@ const LoginForm: React.FC = () => {
                   </FormControl>
                   {loginType === "student" && (
                     <FormDescription className="text-xs">
-                      Enter your University of Rwanda registration number
+                      Enter your 9-digit registration number starting with '2'
                     </FormDescription>
                   )}
                   <FormMessage />

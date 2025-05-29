@@ -15,6 +15,7 @@ import {
   HeartHandshake
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
   const location = useLocation();
+  const { logout } = useAuth();
 
   const menuItems = [
     { path: "/admin", icon: Home, label: "Dashboard", exact: true },
@@ -39,10 +41,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
-  };
-
-  const handleLogout = () => {
-    window.location.href = "/";
   };
 
   return (
@@ -124,11 +122,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
         <div className="p-4 border-t border-gray-200">
           <Button
             variant="outline"
-            onClick={handleLogout}
+            onClick={logout}
             className="w-full flex items-center justify-center space-x-2 text-red-600 border-red-200 hover:bg-red-50"
           >
             <LogOut className="h-4 w-4" />
-            <span>Back to Home</span>
+            <span>Logout</span>
           </Button>
         </div>
       </div>

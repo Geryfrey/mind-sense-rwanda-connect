@@ -45,16 +45,16 @@ const LandingPage = () => {
           <div className="space-x-4">
             <Button
               variant="outline"
-              onClick={() => navigate("/student")}
+              onClick={() => navigate("/login")}
               className="border-purple-600 text-purple-600 hover:bg-purple-50"
             >
-              Student Portal
+              Login
             </Button>
             <Button
-              onClick={() => navigate("/admin")}
+              onClick={() => navigate("/register")}
               className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
             >
-              Admin Portal
+              Sign Up
             </Button>
           </div>
         </nav>
@@ -73,18 +73,18 @@ const LandingPage = () => {
           <div className="space-x-4">
             <Button
               size="lg"
-              onClick={() => navigate("/student")}
+              onClick={() => navigate("/register")}
               className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-lg px-8 py-3"
             >
-              Get Started as Student
+              Get Started
             </Button>
             <Button
               size="lg"
               variant="outline"
-              onClick={() => navigate("/admin")}
+              onClick={() => navigate("/login")}
               className="border-purple-600 text-purple-600 hover:bg-purple-50 text-lg px-8 py-3"
             >
-              Admin Access
+              Login
             </Button>
           </div>
         </div>

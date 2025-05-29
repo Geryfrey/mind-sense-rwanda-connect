@@ -14,6 +14,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 
 interface StudentSidebarProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface StudentSidebarProps {
 
 const StudentSidebar: React.FC<StudentSidebarProps> = ({ isOpen, onToggle }) => {
   const location = useLocation();
+  const { logout } = useAuth();
 
   const menuItems = [
     { path: "/student", icon: Home, label: "Home", exact: true },
@@ -38,10 +40,6 @@ const StudentSidebar: React.FC<StudentSidebarProps> = ({ isOpen, onToggle }) => 
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
-  };
-
-  const handleLogout = () => {
-    window.location.href = "/";
   };
 
   return (
@@ -123,11 +121,11 @@ const StudentSidebar: React.FC<StudentSidebarProps> = ({ isOpen, onToggle }) => 
         <div className="p-4 border-t border-gray-200">
           <Button
             variant="outline"
-            onClick={handleLogout}
+            onClick={logout}
             className="w-full flex items-center justify-center space-x-2 text-red-600 border-red-200 hover:bg-red-50"
           >
             <LogOut className="h-4 w-4" />
-            <span>Back to Home</span>
+            <span>Logout</span>
           </Button>
         </div>
       </div>
