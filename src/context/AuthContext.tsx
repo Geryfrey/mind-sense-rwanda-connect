@@ -11,6 +11,7 @@ export interface User {
   id: string;
   regNumber?: string;
   email?: string;
+  name?: string;
   role: UserRole;
 }
 
@@ -46,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('id, reg_number, email, role')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
 
       if (error) {
@@ -58,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: profile.id,
         regNumber: profile.reg_number || undefined,
         email: profile.email || undefined,
+        name: profile.reg_number || profile.email || "User",
         role: profile.role as UserRole,
       };
     } catch (error) {

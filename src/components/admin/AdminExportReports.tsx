@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,9 +16,8 @@ interface AssessmentData {
   depression_score: number;
   created_at: string;
   profiles?: {
-    name: string | null;
-    email: string | null;
     reg_number: string | null;
+    email: string | null;
   } | null;
 }
 
@@ -99,7 +97,7 @@ const AdminExportReports: React.FC = () => {
       if (userIds.length > 0) {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, email, reg_number')
+          .select('id, reg_number, email')
           .in('id', userIds);
 
         if (profileError) {
@@ -149,7 +147,7 @@ const AdminExportReports: React.FC = () => {
 
       const csvData = assessments.map(assessment => [
         assessment.id,
-        assessment.profiles?.name || "N/A",
+        assessment.profiles?.reg_number || assessment.profiles?.email || "N/A",
         assessment.profiles?.reg_number || "N/A",
         assessment.profiles?.email || "N/A",
         assessment.stress_score,
@@ -336,7 +334,7 @@ const AdminExportReports: React.FC = () => {
                 <tbody>
                   {assessments.slice(0, 10).map((assessment) => (
                     <tr key={assessment.id} className="border-b">
-                      <td className="p-2">{assessment.profiles?.name || "N/A"}</td>
+                      <td className="p-2">{assessment.profiles?.reg_number || assessment.profiles?.email || "N/A"}</td>
                       <td className="p-2">{assessment.profiles?.reg_number || "N/A"}</td>
                       <td className="p-2">{assessment.stress_score}</td>
                       <td className="p-2">{assessment.anxiety_score}</td>
