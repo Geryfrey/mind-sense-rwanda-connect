@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,8 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('id, reg_number, email, role')
-        .eq('id', userId)
+        .select('user_id, reg_number, email, role')
+        .eq('user_id', userId)
         .single();
 
       if (error) {
@@ -56,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       return {
-        id: profile.id,
+        id: profile.user_id,
         regNumber: profile.reg_number || undefined,
         email: profile.email || undefined,
         name: profile.reg_number || profile.email || "User",

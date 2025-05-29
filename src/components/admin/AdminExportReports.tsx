@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -97,8 +98,8 @@ const AdminExportReports: React.FC = () => {
       if (userIds.length > 0) {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, reg_number, email')
-          .in('id', userIds);
+          .select('user_id, reg_number, email')
+          .in('user_id', userIds);
 
         if (profileError) {
           console.error("Error fetching profiles:", profileError);
@@ -107,7 +108,7 @@ const AdminExportReports: React.FC = () => {
         // Combine the data
         const combinedData = assessmentData?.map(assessment => ({
           ...assessment,
-          profiles: profileData?.find(p => p.id === assessment.user_id) || null
+          profiles: profileData?.find(p => p.user_id === assessment.user_id) || null
         })) || [];
 
         setAssessments(combinedData);
