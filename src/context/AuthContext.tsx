@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -219,16 +218,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Navigate based on user role when user state changes
+  // Navigate based on user role when user state changes - but skip after registration
   useEffect(() => {
     if (user && !isLoading) {
-      if (user.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/student");
+      // Only auto-navigate if we have a session (user is actually logged in)
+      if (session) {
+        if (user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/student");
+        }
       }
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, session, navigate]);
 
   return (
     <AuthContext.Provider

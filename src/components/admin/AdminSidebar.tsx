@@ -24,7 +24,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const menuItems = [
     { path: "/admin", icon: Home, label: "Dashboard", exact: true },
@@ -41,6 +41,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
+  };
+
+  // Get user's first name for portal label
+  const getPortalLabel = () => {
+    const firstName = user?.firstName;
+    return firstName ? `${firstName} Portal` : "Admin Portal";
   };
 
   return (
@@ -81,7 +87,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
           
           {/* User info */}
           <div className="mt-4 p-3 bg-indigo-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-900">Admin Portal</p>
+            <p className="text-sm font-medium text-gray-900">{getPortalLabel()}</p>
             <p className="text-xs text-gray-500">System Administrator</p>
             <span className="inline-block mt-1 text-xs px-2 py-1 rounded-full bg-indigo-100 text-indigo-800">
               Administrator

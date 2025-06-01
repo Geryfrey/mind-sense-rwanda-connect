@@ -93,9 +93,10 @@ const RegisterForm: React.FC = () => {
       if (success) {
         toast({
           title: "Registration successful",
-          description: "Welcome to SWAP!",
+          description: "Please check your email to verify your account, then login.",
         });
-        // Navigation is handled in the AuthContext
+        // Redirect to login page instead of dashboard
+        navigate("/login");
       } else {
         if (data.role === "student") {
           setError(`Registration number ${data.identifier} might already be registered or there was an error. Please try again.`);
