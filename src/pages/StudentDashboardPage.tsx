@@ -1,7 +1,7 @@
-
 import React, { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useML } from "@/context/MLContext";
+import { useAuth } from "@/context/AuthContext";
 import StudentSidebar from "@/components/student/StudentSidebar";
 import AssessmentForm from "@/components/assessment/AssessmentForm";
 import AssessmentHistory from "@/components/assessment/AssessmentHistory";
@@ -32,11 +32,20 @@ const mockJournalEntries = [
 // Student dashboard pages
 const StudentHome: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // Get display name for welcome message
+  const getDisplayName = () => {
+    if (user?.firstName) {
+      return user.firstName;
+    }
+    return user?.name?.split(' ')[0] || 'Student';
+  };
   
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Welcome back, Student</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Welcome back, {getDisplayName()}!</h1>
         <p className="text-gray-600 mt-2">Monitor your mental health and access support resources</p>
       </div>
       

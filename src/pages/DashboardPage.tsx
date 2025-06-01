@@ -64,6 +64,14 @@ const DashboardPage: React.FC = () => {
     // Close mobile menu after navigation
     setIsMobileMenuOpen(false);
   };
+
+  // Get display name for welcome message
+  const getDisplayName = () => {
+    if (user?.firstName) {
+      return user.firstName;
+    }
+    return user?.name?.split(' ')[0] || 'User';
+  };
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -78,7 +86,7 @@ const DashboardPage: React.FC = () => {
           <div className="hidden md:flex items-center space-x-4">
             <div className="flex items-center text-sm">
               <UserCircle className="h-5 w-5 mr-1 text-gray-500" />
-              <span className="font-medium">{user?.name}</span>
+              <span className="font-medium">Welcome back, {getDisplayName()}!</span>
               <span className="ml-2 text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 capitalize">
                 {user?.role}
               </span>
@@ -107,7 +115,7 @@ const DashboardPage: React.FC = () => {
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center text-sm">
                 <UserCircle className="h-5 w-5 mr-1 text-gray-500" />
-                <span className="font-medium">{user?.name}</span>
+                <span className="font-medium">Welcome back, {getDisplayName()}!</span>
               </div>
               <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 capitalize">
                 {user?.role}

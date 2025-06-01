@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +12,8 @@ export interface User {
   regNumber?: string;
   email?: string;
   name?: string;
+  firstName?: string;
+  lastName?: string;
   role: UserRole;
 }
 
@@ -20,7 +23,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (identifier: string, password: string, loginType: UserRole) => Promise<boolean>;
-  register: (identifier: string, password: string, role: UserRole) => Promise<boolean>;
+  register: (identifier: string, password: string, role: UserRole, firstName?: string, lastName?: string) => Promise<boolean>;
   logout: () => Promise<void>;
 }
 
@@ -45,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('user_id, reg_number, email, role')
+        .select('user_id, reg_number, email, role, first_name, last_name')
         .eq('user_id', userId)
         .single();
 
@@ -54,11 +57,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
+      const displayName = profile.first_name && profile.last_name 
+        ? `${profile.first_name} ${profile.last_name}`
+        : profile.reg_number || profile.email || "User";
+
       return {
         id: profile.user_id,
         regNumber: profile.reg_number || undefined,
         email: profile.email || undefined,
-        name: profile.reg_number || profile.email || "User",
+        name: displayName,
+        firstName: profile.first_name || undefined,
+        lastName: profile.last_name || undefined,
         role: profile.role as UserRole,
       };
     } catch (error) {
@@ -150,7 +159,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (
     identifier: string,
     password: string, 
-    role: UserRole
+    role: UserRole,
+    firstName?: string,
+    lastName?: string
   ): Promise<boolean> => {
     try {
       let email = identifier;
@@ -174,6 +185,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             role,
             reg_number: regNumber,
+            first_name: firstName,
+            last_name: lastName,
           }
         }
       });
