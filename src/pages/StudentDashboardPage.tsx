@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useML } from "@/context/MLContext";
@@ -488,8 +489,8 @@ const StudentDashboardPage: React.FC = () => {
         onToggle={() => setSidebarOpen(!sidebarOpen)} 
       />
       
-      {/* Main content */}
-      <div className="flex-1 flex flex-col lg:ml-72">
+      {/* Main content area with proper spacing */}
+      <div className="flex-1 flex flex-col">
         {/* Mobile header */}
         <header className="lg:hidden bg-white shadow-sm border-b border-gray-200 p-4">
           <Button

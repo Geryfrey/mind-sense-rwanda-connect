@@ -54,24 +54,6 @@ const App = () => (
                 } 
               />
               
-              {/* Legacy routes - redirect to dashboards */}
-              <Route 
-                path="/dashboard" 
-                element={
-                  <RequireAuth>
-                    <StudentDashboardPage />
-                  </RequireAuth>
-                } 
-              />
-              <Route 
-                path="/dashboard/*" 
-                element={
-                  <RequireAuth>
-                    <StudentDashboardPage />
-                  </RequireAuth>
-                } 
-              />
-              
               {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>

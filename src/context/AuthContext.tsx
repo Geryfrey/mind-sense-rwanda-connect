@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [justRegistered, setJustRegistered] = useState<boolean>(false);
   const navigate = useNavigate();
 
   // Helper function to get user profile from Supabase
@@ -177,6 +179,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         regNumber = identifier;
       }
 
+      setJustRegistered(true);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -192,6 +196,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error("Registration error:", error);
+        setJustRegistered(false);
         return false;
       }
 
@@ -202,6 +207,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     } catch (error) {
       console.error("Registration error:", error);
+      setJustRegistered(false);
       return false;
     }
   };
@@ -220,7 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Navigate based on user role when user state changes - but skip after registration
   useEffect(() => {
-    if (user && !isLoading) {
+    if (user && !isLoading && !justRegistered) {
       // Only auto-navigate if we have a session (user is actually logged in)
       if (session) {
         if (user.role === "admin") {
@@ -230,7 +236,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     }
-  }, [user, isLoading, session, navigate]);
+    
+    // Reset the registration flag after navigation check
+    if (justRegistered) {
+      setJustRegistered(false);
+    }
+  }, [user, isLoading, session, navigate, justRegistered]);
 
   return (
     <AuthContext.Provider
