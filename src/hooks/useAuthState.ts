@@ -4,12 +4,15 @@ import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole } from "@/types/auth";
 
-const AUTH_EVENTS = {
-  SIGNED_UP: "SIGNED_UP",
+export const AUTH_EVENTS = {
   SIGNED_IN: "SIGNED_IN",
   SIGNED_OUT: "SIGNED_OUT",
-  // ...other events if needed
+  SIGNED_UP: "SIGNED_UP",
+  PASSWORD_RECOVERY: "PASSWORD_RECOVERY",
+  TOKEN_REFRESHED: "TOKEN_REFRESHED",
+  USER_UPDATED: "USER_UPDATED",
 } as const;
+
 
 export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -53,7 +56,7 @@ export const useAuthState = () => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: keyof typeof AUTH_EVENTS, session) => {
         console.log("Auth state changed:", event, session?.user?.id);
         setSession(session);
         
