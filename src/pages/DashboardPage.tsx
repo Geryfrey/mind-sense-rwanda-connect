@@ -15,17 +15,10 @@ import { Button } from "@/components/ui/button";
 
 const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
-  const { loadModel, isModelLoaded } = useML();
+  const { isLoading } = useML();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-  
-  useEffect(() => {
-    // Load the ML model when the dashboard loads
-    if (!isModelLoaded) {
-      loadModel();
-    }
-  }, [loadModel, isModelLoaded]);
   
   // Get active tab from URL or default to assessment
   const getActiveTabFromUrl = () => {
@@ -168,12 +161,12 @@ const DashboardPage: React.FC = () => {
             </TabsList>
           </div>
           
-          {!isModelLoaded && (
+          {isLoading && (
             <Card>
               <CardContent className="py-4">
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-4 h-4 rounded-full bg-blue-500 animate-pulse"></div>
-                  <p className="text-sm text-gray-500">Loading ML model... Please wait</p>
+                  <p className="text-sm text-gray-500">Processing assessment... Please wait</p>
                 </div>
               </CardContent>
             </Card>

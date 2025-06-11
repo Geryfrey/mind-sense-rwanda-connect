@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useML } from "@/context/MLContext";
@@ -471,15 +470,8 @@ const StudentSettings: React.FC = () => (
 );
 
 const StudentDashboardPage: React.FC = () => {
-  const { loadModel, isModelLoaded } = useML();
+  const { isLoading } = useML();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  useEffect(() => {
-    // Load the ML model when the dashboard loads
-    if (!isModelLoaded) {
-      loadModel();
-    }
-  }, [loadModel, isModelLoaded]);
   
   return (
     <div className="flex h-screen bg-gray-50">
@@ -504,12 +496,12 @@ const StudentDashboardPage: React.FC = () => {
         
         {/* Content area */}
         <main className="flex-1 overflow-auto p-6">
-          {!isModelLoaded && (
+          {isLoading && (
             <Card className="mb-6">
               <CardContent className="py-4">
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse"></div>
-                  <p className="text-sm text-gray-500">Loading ML model... Please wait</p>
+                  <p className="text-sm text-gray-500">Processing assessment... Please wait</p>
                 </div>
               </CardContent>
             </Card>
