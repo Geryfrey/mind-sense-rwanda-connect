@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log("Auth state changed:", event, session?.user?.id);
         setSession(session);
         
-        if (session?.user && event !== 'SIGNED_UP') {
+        if (session?.user && event !== AuthChangeEvent.SIGNED_UP) {
           // Only auto-login for events other than SIGNED_UP
           setTimeout(async () => {
             const profile = await getUserProfile(session.user.id);
@@ -287,3 +287,5 @@ export const RequireAuth: React.FC<{
 
   return <>{children}</>;
 };
+
+export default AuthProvider;
