@@ -1,17 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User as SupabaseUser, Session, AuthChangeEvent } from "@supabase/supabase-js";
-
-export const AUTH_EVENTS = {
-  SIGNED_IN: "SIGNED_IN",
-  SIGNED_OUT: "SIGNED_OUT",
-  SIGNED_UP: "SIGNED_UP",
-  PASSWORD_RECOVERY: "PASSWORD_RECOVERY",
-  TOKEN_REFRESHED: "TOKEN_REFRESHED",
-  USER_UPDATED: "USER_UPDATED",
-} as const;
-
+import { User as SupabaseUser, Session } from "@supabase/supabase-js";
 
 // User types
 export type UserRole = "student" | "admin";
@@ -88,11 +79,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    async (event: keyof typeof AUTH_EVENTS, session) => {
+      async (event, session) => {
         console.log("Auth state changed:", event, session?.user?.id);
         setSession(session);
         
-        if (session?.user && event !== AUTH_EVENTS.SIGNED_UP) {
+        if (session?.user && event !== 'SIGNED_UP') {
           // Only auto-login for events other than SIGNED_UP
           setTimeout(async () => {
             const profile = await getUserProfile(session.user.id);
