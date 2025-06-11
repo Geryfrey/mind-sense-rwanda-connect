@@ -15,6 +15,7 @@ export interface AssessmentResult {
   };
   riskLevel: 'low' | 'moderate' | 'high';
   riskFactors?: string[];
+  tags?: string[]; // New field for context-aware mental health tags
   confidence: number;
   timestamp: string;
   referrals?: any[];
@@ -89,6 +90,7 @@ export const MLProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         },
         riskLevel: text.toLowerCase().includes('sad') || text.toLowerCase().includes('depressed') ? 'moderate' : 'low',
         riskFactors: text.toLowerCase().includes('sad') ? ['stress indicators'] : [],
+        tags: text.toLowerCase().includes('exam') ? ['#AcademicStress'] : [], // Simple mock tagging
         confidence: 0.75,
         timestamp: new Date().toISOString(),
       };

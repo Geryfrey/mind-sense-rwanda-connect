@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useML, AssessmentResult } from "@/context/MLContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 
 const AssessmentForm: React.FC = () => {
@@ -98,7 +99,7 @@ const AssessmentForm: React.FC = () => {
           <CardHeader>
             <CardTitle>Assessment Results</CardTitle>
             <CardDescription>
-              Based on your input, we've analyzed your current emotional state
+              Based on your input, we've analyzed your current emotional state and identified relevant contexts
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -107,6 +108,26 @@ const AssessmentForm: React.FC = () => {
                 <h3 className="font-medium mb-2">Your message:</h3>
                 <p className="text-sm text-gray-700">{result.text}</p>
               </div>
+              
+              {result.tags && result.tags.length > 0 && (
+                <div className="p-4 border rounded-lg bg-blue-50">
+                  <h3 className="font-medium mb-3">Identified Contexts:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {result.tags.map((tag, index) => (
+                      <Badge 
+                        key={index} 
+                        variant="secondary" 
+                        className="bg-blue-100 text-blue-800 hover:bg-blue-200"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    These contexts help us understand the specific challenges you're facing.
+                  </p>
+                </div>
+              )}
               
               <div className={`p-4 border rounded-lg ${
                 result.riskLevel === 'low' ? 'bg-green-50' : 

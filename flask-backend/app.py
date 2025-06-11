@@ -32,6 +32,45 @@ MODERATE_RISK_KEYWORDS = [
     'sad', 'worried', 'scared', 'angry', 'frustrated', 'tired', 'exhausted'
 ]
 
+# Context-aware mental health tags mapping
+MENTAL_HEALTH_TAGS = {
+    '#AcademicStress': [
+        'failing', 'grades', 'exam', 'test', 'assignment', 'coursework', 'study', 'studying',
+        'homework', 'class', 'classes', 'professor', 'academic', 'semester', 'deadline',
+        'gpa', 'marks', 'performance', 'behind in', 'catching up', 'workload'
+    ],
+    '#FinancialStress': [
+        'money', 'broke', 'financial', 'afford', 'expensive', 'cost', 'budget',
+        'debt', 'loan', 'tuition', 'fees', 'bills', 'payment', 'poverty',
+        'poor', 'economic', 'salary', 'income', 'scholarship'
+    ],
+    '#Anxiety': [
+        'anxious', 'anxiety', 'panic', 'nervous', 'worry', 'worried', 'fear',
+        'scared', 'terrified', 'tense', 'restless', 'uneasy', 'apprehensive',
+        'overwhelmed', 'stressed out', 'racing thoughts', 'heart racing'
+    ],
+    '#LowMood': [
+        'sad', 'depressed', 'down', 'low', 'unhappy', 'miserable', 'gloomy',
+        'melancholy', 'dejected', 'discouraged', 'disappointed', 'blue',
+        'empty', 'numb', 'hopeless', 'despair'
+    ],
+    '#SocialAnxiety': [
+        'social', 'people', 'friends', 'lonely', 'isolated', 'alone', 'shy',
+        'awkward', 'embarrassed', 'judged', 'self-conscious', 'withdrawn',
+        'antisocial', 'introvert', 'relationships', 'fitting in'
+    ],
+    '#SleepDeprived': [
+        'sleep', 'tired', 'exhausted', 'insomnia', 'can\'t sleep', 'sleepless',
+        'awake', 'restless nights', 'fatigue', 'drowsy', 'sleepy', 'no sleep',
+        'staying up', 'all night', 'sleep schedule', 'sleeping problems'
+    ],
+    '#HighRisk': [
+        'suicide', 'kill myself', 'end it all', 'want to die', 'no point',
+        'self harm', 'cut myself', 'hurt myself', 'worthless', 'hopeless',
+        'give up', 'can\'t go on', 'better off dead', 'no future'
+    ]
+}
+
 def verify_token(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -55,6 +94,21 @@ def verify_token(f):
             return jsonify({'error': 'Token verification failed'}), 401
     
     return decorated_function
+
+def extract_mental_health_tags(text):
+    """
+    Extract context-aware mental health tags from text based on keyword matching
+    """
+    text_lower = text.lower()
+    detected_tags = []
+    
+    for tag, keywords in MENTAL_HEALTH_TAGS.items():
+        # Check if any keyword from this tag category appears in the text
+        if any(keyword in text_lower for keyword in keywords):
+            detected_tags.append(tag)
+    
+    # Remove duplicates while preserving order
+    return list(dict.fromkeys(detected_tags))
 
 def analyze_sentiment_and_emotions(text):
     """
@@ -105,38 +159,45 @@ def analyze_sentiment_and_emotions(text):
     
     return scores, emotions
 
-def determine_risk_level(text, sentiment_scores, emotions):
+def determine_risk_level(text, sentiment_scores, emotions, tags):
     """
-    Determine risk level based on text content, sentiment, and emotions
+    Determine risk level based on text content, sentiment, emotions, and detected tags
     """
     text_lower = text.lower()
     
-    # Check for high-risk keywords
+    # Check for high-risk keywords or tags
     high_risk_found = any(keyword in text_lower for keyword in HIGH_RISK_KEYWORDS)
-    if high_risk_found:
+    has_high_risk_tag = '#HighRisk' in tags
+    
+    if high_risk_found or has_high_risk_tag:
         return 'high', ['suicidal ideation', 'self-harm risk']
     
     # Check for moderate risk indicators
     moderate_risk_found = any(keyword in text_lower for keyword in MODERATE_RISK_KEYWORDS)
     
-    # Risk assessment based on sentiment and emotions
+    # Risk assessment based on sentiment, emotions, and tags
     compound_score = sentiment_scores['compound']
     max_negative_emotion = max([emotions['sadness'], emotions['anger'], emotions['fear'], emotions['anxiety']])
     
+    # Consider multiple stress tags as risk escalation
+    stress_tags = [tag for tag in tags if tag in ['#AcademicStress', '#FinancialStress', '#Anxiety', '#LowMood']]
+    
     risk_factors = []
     
-    if compound_score <= -0.6 or max_negative_emotion >= 0.7:
-        if moderate_risk_found:
-            risk_factors.extend(['severe emotional distress', 'depression indicators'])
+    if compound_score <= -0.6 or max_negative_emotion >= 0.7 or len(stress_tags) >= 3:
+        if moderate_risk_found or len(stress_tags) >= 2:
+            risk_factors.extend(['severe emotional distress', 'multiple stressors'])
             return 'high', risk_factors
         else:
             risk_factors.append('negative emotional state')
             return 'moderate', risk_factors
-    elif compound_score <= -0.3 or max_negative_emotion >= 0.5 or moderate_risk_found:
+    elif compound_score <= -0.3 or max_negative_emotion >= 0.5 or moderate_risk_found or len(stress_tags) >= 1:
         if moderate_risk_found:
             risk_factors.append('stress indicators')
         if max_negative_emotion >= 0.5:
             risk_factors.append('emotional distress')
+        if len(stress_tags) >= 1:
+            risk_factors.append('contextual stressors')
         return 'moderate', risk_factors
     else:
         return 'low', []
@@ -185,7 +246,7 @@ def get_referrals_for_risk_level(risk_level, risk_factors):
 @verify_token
 def submit_assessment():
     """
-    Main endpoint for processing mental health assessments
+    Main endpoint for processing mental health assessments with context-aware tagging
     """
     try:
         data = request.get_json()
@@ -197,16 +258,19 @@ def submit_assessment():
         # Get user ID from token
         user_id = request.user.user.id
         
+        # Extract mental health tags
+        tags = extract_mental_health_tags(text)
+        
         # Analyze sentiment and emotions
         sentiment_scores, emotions = analyze_sentiment_and_emotions(text)
         
-        # Determine risk level
-        risk_level, risk_factors = determine_risk_level(text, sentiment_scores, emotions)
+        # Determine risk level (now considers tags)
+        risk_level, risk_factors = determine_risk_level(text, sentiment_scores, emotions, tags)
         
         # Get appropriate referrals
         referrals = get_referrals_for_risk_level(risk_level, risk_factors)
         
-        # Create assessment result
+        # Create assessment result with new tags field
         assessment_result = {
             'id': str(uuid.uuid4()),
             'text': text,
@@ -214,12 +278,13 @@ def submit_assessment():
             'emotions': emotions,
             'riskLevel': risk_level,
             'riskFactors': risk_factors,
+            'tags': tags,  # New field for context-aware tags
             'confidence': abs(sentiment_scores['compound']),
             'timestamp': datetime.now().isoformat(),
             'referrals': referrals
         }
         
-        # Store assessment in Supabase
+        # Store assessment in Supabase (include tags)
         try:
             supabase.table('assessments').insert({
                 'id': assessment_result['id'],
@@ -229,6 +294,7 @@ def submit_assessment():
                 'emotions': emotions,
                 'risk_level': risk_level,
                 'risk_factors': risk_factors,
+                'tags': tags,  # Store tags in database
                 'confidence_score': abs(sentiment_scores['compound']),
                 'created_at': assessment_result['timestamp']
             }).execute()
@@ -263,6 +329,7 @@ def get_user_assessments():
                 'emotions': assessment['emotions'],
                 'riskLevel': assessment['risk_level'],
                 'riskFactors': assessment['risk_factors'],
+                'tags': assessment.get('tags', []),  # Include tags in response
                 'confidence': assessment['confidence_score'],
                 'timestamp': assessment['created_at']
             })
@@ -277,7 +344,7 @@ def get_user_assessments():
 @verify_token
 def get_admin_analytics():
     """
-    Get analytics data for admin dashboard
+    Get analytics data for admin dashboard including tag distribution
     """
     try:
         # Verify admin role
@@ -288,7 +355,7 @@ def get_admin_analytics():
             return jsonify({'error': 'Unauthorized - Admin access required'}), 403
         
         # Get assessment statistics
-        assessments_response = supabase.table('assessments').select('risk_level, created_at').execute()
+        assessments_response = supabase.table('assessments').select('risk_level, tags, created_at').execute()
         
         analytics_data = {
             'totalAssessments': len(assessments_response.data),
@@ -297,14 +364,23 @@ def get_admin_analytics():
                 'moderate': 0,
                 'high': 0
             },
+            'tagDistribution': {},  # New analytics for tag frequency
             'recentTrends': []
         }
         
-        # Calculate risk distribution
+        # Calculate risk distribution and tag frequency
         for assessment in assessments_response.data:
             risk_level = assessment['risk_level']
             if risk_level in analytics_data['riskDistribution']:
                 analytics_data['riskDistribution'][risk_level] += 1
+            
+            # Count tag occurrences
+            assessment_tags = assessment.get('tags', [])
+            for tag in assessment_tags:
+                if tag in analytics_data['tagDistribution']:
+                    analytics_data['tagDistribution'][tag] += 1
+                else:
+                    analytics_data['tagDistribution'][tag] = 1
         
         return jsonify(analytics_data), 200
         
@@ -317,7 +393,7 @@ def health_check():
     """
     Health check endpoint
     """
-    return jsonify({'status': 'healthy', 'message': 'Flask ML backend is running'}), 200
+    return jsonify({'status': 'healthy', 'message': 'Flask ML backend with context-aware tagging is running'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
