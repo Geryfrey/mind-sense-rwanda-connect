@@ -6,7 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MLProvider } from "@/context/MLContext";
-import { AuthProvider, RequireAuth } from "@/context/AuthContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { RequireAuth } from "@/components/auth/RequireAuth";
 
 // Pages
 import LandingPage from "./pages/LandingPage";
