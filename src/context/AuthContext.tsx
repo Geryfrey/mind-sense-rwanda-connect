@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User as SupabaseUser, Session } from "@supabase/supabase-js";
+import { User as SupabaseUser, Session, AuthChangeEvent } from "@supabase/supabase-js";
 
 // User types
 export type UserRole = "student" | "admin";
