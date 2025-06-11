@@ -476,7 +476,7 @@ const StudentDashboardPage: React.FC = () => {
   
   // Add debugging for route changes
   useEffect(() => {
-    console.log("Current route:", location.pathname);
+    console.log("StudentDashboard - Current route:", location.pathname);
   }, [location.pathname]);
   
   return (
