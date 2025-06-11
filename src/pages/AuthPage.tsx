@@ -7,14 +7,18 @@ import { useAuth } from "@/context/AuthContext";
 
 const AuthPage: React.FC = () => {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   
   // Determine if we're on login or register page
   const isLoginPage = location.pathname === "/login";
   
-  // If already authenticated, redirect to dashboard
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
+  // If already authenticated, redirect to appropriate dashboard
+  if (isAuthenticated && user) {
+    if (user.role === "admin") {
+      return <Navigate to="/admin" />;
+    } else {
+      return <Navigate to="/student" />;
+    }
   }
   
   return (

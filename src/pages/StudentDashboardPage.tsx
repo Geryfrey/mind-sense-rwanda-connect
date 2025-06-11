@@ -54,9 +54,9 @@ const StudentHome: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center mb-4">
               <Brain className="h-8 w-8 text-purple-600" />
-              <h3 className="font-semibold text-lg ml-3">Quick Assessment</h3>
+              <h3 className="font-semibold text-lg ml-3">Mental Health Check</h3>
             </div>
-            <p className="text-gray-600 text-sm mb-4">Take a quick mental health check</p>
+            <p className="text-gray-600 text-sm mb-4">Share your thoughts and get personalized insights using AI analysis</p>
             <Button className="w-full">Start Assessment</Button>
           </CardContent>
         </Card>
@@ -65,14 +65,13 @@ const StudentHome: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center mb-4">
               <BarChart3 className="h-8 w-8 text-blue-600" />
-              <h3 className="font-semibold text-lg ml-3">Recent Results</h3>
+              <h3 className="font-semibold text-lg ml-3">Assessment History</h3>
             </div>
-            <p className="text-gray-600 text-sm mb-2">Last assessment: May 22, 2024</p>
+            <p className="text-gray-600 text-sm mb-2">View your previous assessments and track progress</p>
             <div className="flex items-center mb-4">
-              <Badge className="bg-green-100 text-green-800">Low Risk</Badge>
-              <span className="ml-2 text-sm text-gray-600">Score: 15/60</span>
+              <Badge className="bg-blue-100 text-blue-800">Track Progress</Badge>
             </div>
-            <Button variant="outline" className="w-full">View All Results</Button>
+            <Button variant="outline" className="w-full">View History</Button>
           </CardContent>
         </Card>
         
@@ -80,9 +79,9 @@ const StudentHome: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center mb-4">
               <BookOpen className="h-8 w-8 text-green-600" />
-              <h3 className="font-semibold text-lg ml-3">Resources</h3>
+              <h3 className="font-semibold text-lg ml-3">Self-Help Resources</h3>
             </div>
-            <p className="text-gray-600 text-sm mb-4">Access mental health resources and self-help materials</p>
+            <p className="text-gray-600 text-sm mb-4">Access mental health resources and coping strategies</p>
             <Button variant="outline" className="w-full">Browse Resources</Button>
           </CardContent>
         </Card>

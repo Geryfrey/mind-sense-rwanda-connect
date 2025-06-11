@@ -41,7 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [justRegistered, setJustRegistered] = useState<boolean>(false);
   const navigate = useNavigate();
 
   // Helper function to get user profile from Supabase
@@ -85,8 +84,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log("Auth state changed:", event, session?.user?.id);
         setSession(session);
         
-        if (session?.user) {
-          // Use setTimeout to prevent auth callback deadlock
+        if (session?.user && event !== 'SIGNED_UP') {
+          // Only auto-login for events other than SIGNED_UP
           setTimeout(async () => {
             const profile = await getUserProfile(session.user.id);
             setUser(profile);
@@ -156,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Register function
+  // Register function - now prevents auto-login
   const register = async (
     identifier: string,
     password: string, 
@@ -179,12 +178,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         regNumber = identifier;
       }
 
-      setJustRegistered(true);
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/login`,
           data: {
             role,
             reg_number: regNumber,
@@ -196,18 +194,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error("Registration error:", error);
-        setJustRegistered(false);
         return false;
       }
 
       if (data.user) {
+        // Important: Sign out immediately after registration to prevent auto-login
+        await supabase.auth.signOut();
         return true;
       }
       
       return false;
     } catch (error) {
       console.error("Registration error:", error);
-      setJustRegistered(false);
       return false;
     }
   };
@@ -224,24 +222,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Navigate based on user role when user state changes - but skip after registration
+  // Navigate based on user role when user state changes
   useEffect(() => {
-    if (user && !isLoading && !justRegistered) {
-      // Only auto-navigate if we have a session (user is actually logged in)
-      if (session) {
-        if (user.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/student");
-        }
+    if (user && !isLoading && session) {
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/student");
       }
     }
-    
-    // Reset the registration flag after navigation check
-    if (justRegistered) {
-      setJustRegistered(false);
-    }
-  }, [user, isLoading, session, navigate, justRegistered]);
+  }, [user, isLoading, session, navigate]);
 
   return (
     <AuthContext.Provider
