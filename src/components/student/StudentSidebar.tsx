@@ -61,12 +61,12 @@ const StudentSidebar: React.FC<StudentSidebarProps> = ({ isOpen, onToggle }) => 
       {/* Sidebar */}
       <div className={cn(
         "fixed left-0 top-0 h-full bg-white shadow-lg z-50 transition-transform duration-300 ease-in-out",
-        "w-64 lg:w-72",
+        "w-64 lg:w-72 flex flex-col",
         isOpen ? "translate-x-0" : "-translate-x-full",
         "lg:translate-x-0 lg:static lg:z-auto"
       )}>
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <CheckCircle className="h-8 w-8 text-purple-600" />
@@ -94,37 +94,39 @@ const StudentSidebar: React.FC<StudentSidebarProps> = ({ isOpen, onToggle }) => 
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            {menuItems.map((item) => (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  className={({ isActive: navIsActive }) => cn(
-                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200",
-                    "hover:bg-purple-50 hover:text-purple-700",
-                    (navIsActive || isActive(item.path, item.exact))
-                      ? "bg-purple-100 text-purple-700 font-medium"
-                      : "text-gray-600"
-                  )}
-                  onClick={() => {
-                    // Close mobile menu on navigation
-                    if (window.innerWidth < 1024) {
-                      onToggle();
-                    }
-                  }}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        {/* Navigation - Scrollable area */}
+        <div className="flex-1 overflow-y-auto">
+          <nav className="p-4">
+            <ul className="space-y-2">
+              {menuItems.map((item) => (
+                <li key={item.path}>
+                  <NavLink
+                    to={item.path}
+                    className={({ isActive: navIsActive }) => cn(
+                      "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200",
+                      "hover:bg-purple-50 hover:text-purple-700",
+                      (navIsActive || isActive(item.path, item.exact))
+                        ? "bg-purple-100 text-purple-700 font-medium"
+                        : "text-gray-600"
+                    )}
+                    onClick={() => {
+                      // Close mobile menu on navigation
+                      if (window.innerWidth < 1024) {
+                        onToggle();
+                      }
+                    }}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-200">
+        {/* Footer - Always visible */}
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
           <Button
             variant="outline"
             onClick={logout}
