@@ -4,6 +4,13 @@ import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserRole } from "@/types/auth";
 
+const AUTH_EVENTS = {
+  SIGNED_UP: "SIGNED_UP",
+  SIGNED_IN: "SIGNED_IN",
+  SIGNED_OUT: "SIGNED_OUT",
+  // ...other events if needed
+} as const;
+
 export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -50,7 +57,7 @@ export const useAuthState = () => {
         console.log("Auth state changed:", event, session?.user?.id);
         setSession(session);
         
-        if (session?.user && event !== 'SIGNED_UP') {
+        if (session?.user && event !== 'AUTH_EVENTS.SIGNED_UP') {
           // Only auto-login for events other than SIGNED_UP
           setTimeout(async () => {
             const profile = await getUserProfile(session.user.id);
