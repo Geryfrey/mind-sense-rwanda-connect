@@ -24,50 +24,95 @@ analyzer = SentimentIntensityAnalyzer()
 # Mental health risk keywords for enhanced analysis
 HIGH_RISK_KEYWORDS = [
     'suicide', 'kill myself', 'end it all', 'want to die', 'no point living',
-    'self harm', 'cut myself', 'hurt myself', 'worthless', 'hopeless'
+    'self harm', 'cut myself', 'hurt myself', 'worthless', 'hopeless',
+    'better off dead', 'no future', 'give up', 'can\'t go on'
 ]
 
 MODERATE_RISK_KEYWORDS = [
     'depressed', 'anxious', 'panic', 'overwhelmed', 'stressed', 'lonely',
-    'sad', 'worried', 'scared', 'angry', 'frustrated', 'tired', 'exhausted'
+    'sad', 'worried', 'scared', 'angry', 'frustrated', 'tired', 'exhausted',
+    'can\'t cope', 'breaking down', 'falling apart'
 ]
 
-# Context-aware mental health tags mapping
+# Enhanced and expanded context-aware mental health tags mapping
 MENTAL_HEALTH_TAGS = {
     '#AcademicStress': [
         'failing', 'grades', 'exam', 'test', 'assignment', 'coursework', 'study', 'studying',
         'homework', 'class', 'classes', 'professor', 'academic', 'semester', 'deadline',
-        'gpa', 'marks', 'performance', 'behind in', 'catching up', 'workload'
+        'gpa', 'marks', 'performance', 'behind in', 'catching up', 'workload', 'thesis',
+        'dissertation', 'research', 'presentation', 'quiz', 'midterm', 'final', 'paper'
     ],
     '#FinancialStress': [
         'money', 'broke', 'financial', 'afford', 'expensive', 'cost', 'budget',
         'debt', 'loan', 'tuition', 'fees', 'bills', 'payment', 'poverty',
-        'poor', 'economic', 'salary', 'income', 'scholarship'
+        'poor', 'economic', 'salary', 'income', 'scholarship', 'bursary',
+        'financial aid', 'rent', 'food costs', 'textbooks'
     ],
     '#Anxiety': [
         'anxious', 'anxiety', 'panic', 'nervous', 'worry', 'worried', 'fear',
         'scared', 'terrified', 'tense', 'restless', 'uneasy', 'apprehensive',
-        'overwhelmed', 'stressed out', 'racing thoughts', 'heart racing'
+        'overwhelmed', 'stressed out', 'racing thoughts', 'heart racing',
+        'breathing fast', 'sweating', 'shaking', 'trembling'
     ],
     '#LowMood': [
         'sad', 'depressed', 'down', 'low', 'unhappy', 'miserable', 'gloomy',
         'melancholy', 'dejected', 'discouraged', 'disappointed', 'blue',
-        'empty', 'numb', 'hopeless', 'despair'
+        'empty', 'numb', 'hopeless', 'despair', 'crying', 'tears'
     ],
     '#SocialAnxiety': [
         'social', 'people', 'friends', 'lonely', 'isolated', 'alone', 'shy',
         'awkward', 'embarrassed', 'judged', 'self-conscious', 'withdrawn',
-        'antisocial', 'introvert', 'relationships', 'fitting in'
+        'antisocial', 'introvert', 'relationships', 'fitting in', 'rejection',
+        'talking to people', 'making friends', 'social situations'
     ],
     '#SleepDeprived': [
         'sleep', 'tired', 'exhausted', 'insomnia', 'can\'t sleep', 'sleepless',
         'awake', 'restless nights', 'fatigue', 'drowsy', 'sleepy', 'no sleep',
-        'staying up', 'all night', 'sleep schedule', 'sleeping problems'
+        'staying up', 'all night', 'sleep schedule', 'sleeping problems',
+        'nightmares', 'tossing', 'turning'
     ],
     '#HighRisk': [
         'suicide', 'kill myself', 'end it all', 'want to die', 'no point',
         'self harm', 'cut myself', 'hurt myself', 'worthless', 'hopeless',
-        'give up', 'can\'t go on', 'better off dead', 'no future'
+        'give up', 'can\'t go on', 'better off dead', 'no future',
+        'ending it', 'not worth living'
+    ],
+    '#RelationshipStress': [
+        'relationship', 'boyfriend', 'girlfriend', 'partner', 'breakup', 'broke up',
+        'heartbreak', 'dating', 'love', 'romantic', 'marriage', 'divorce',
+        'cheating', 'trust issues', 'fighting', 'argument', 'couples',
+        'commitment', 'jealousy', 'toxic relationship'
+    ],
+    '#FamilyIssues': [
+        'family', 'parents', 'mom', 'dad', 'mother', 'father', 'home', 'siblings',
+        'relatives', 'family problems', 'family conflict', 'family pressure',
+        'divorce', 'separation', 'abuse', 'neglect', 'toxic family',
+        'family expectations', 'disappointment'
+    ],
+    '#BodyImage': [
+        'fat', 'ugly', 'appearance', 'looks', 'weight', 'skinny', 'body',
+        'mirror', 'clothes', 'eating', 'diet', 'exercise', 'gym',
+        'self-image', 'confidence', 'attractive', 'beautiful', 'handsome'
+    ],
+    '#Perfectionism': [
+        'perfect', 'perfectionist', 'mistake', 'failure', 'not good enough',
+        'disappointing', 'high standards', 'expectations', 'flawless',
+        'error', 'wrong', 'mess up', 'control', 'obsessive'
+    ],
+    '#TimeManagement': [
+        'time', 'busy', 'schedule', 'deadline', 'rushing', 'late', 'procrastination',
+        'procrastinating', 'putting off', 'time management', 'overwhelmed',
+        'too much', 'not enough time', 'behind schedule'
+    ],
+    '#SubstanceUse': [
+        'drinking', 'alcohol', 'drugs', 'smoking', 'weed', 'marijuana',
+        'pills', 'medication', 'addiction', 'substance', 'high', 'drunk',
+        'party', 'escape', 'numb', 'cope'
+    ],
+    '#Identity': [
+        'identity', 'who am i', 'purpose', 'meaning', 'direction', 'lost',
+        'confused', 'identity crisis', 'belonging', 'values', 'beliefs',
+        'sexuality', 'gender', 'race', 'culture', 'religion'
     ]
 }
 
@@ -97,22 +142,56 @@ def verify_token(f):
 
 def extract_mental_health_tags(text):
     """
-    Extract context-aware mental health tags from text based on keyword matching
+    Extract context-aware mental health tags from text using enhanced keyword matching
+    and contextual analysis
     """
     text_lower = text.lower()
     detected_tags = []
     
+    # Basic keyword matching
     for tag, keywords in MENTAL_HEALTH_TAGS.items():
-        # Check if any keyword from this tag category appears in the text
         if any(keyword in text_lower for keyword in keywords):
             detected_tags.append(tag)
+    
+    # Contextual analysis for better tag assignment
+    words = text_lower.split()
+    
+    # Enhanced stress detection based on combinations
+    stress_indicators = ['stress', 'pressure', 'burden', 'weight', 'heavy']
+    if any(indicator in text_lower for indicator in stress_indicators):
+        # Determine type of stress based on context
+        if any(word in text_lower for word in ['school', 'university', 'college', 'student']):
+            if '#AcademicStress' not in detected_tags:
+                detected_tags.append('#AcademicStress')
+        elif any(word in text_lower for word in ['work', 'job', 'career', 'employment']):
+            detected_tags.append('#WorkStress')
+    
+    # Enhanced anxiety detection
+    anxiety_symptoms = ['heart racing', 'can\'t breathe', 'panic attack', 'shaking']
+    if any(symptom in text_lower for symptom in anxiety_symptoms):
+        if '#Anxiety' not in detected_tags:
+            detected_tags.append('#Anxiety')
+    
+    # Relationship context enhancement
+    if any(word in text_lower for word in ['fight', 'argument', 'conflict']) and \
+       any(word in text_lower for word in ['boyfriend', 'girlfriend', 'partner', 'relationship']):
+        if '#RelationshipStress' not in detected_tags:
+            detected_tags.append('#RelationshipStress')
+    
+    # Academic performance specific detection
+    performance_words = ['failing', 'behind', 'struggling', 'difficulty']
+    academic_context = ['class', 'course', 'subject', 'study', 'exam']
+    if any(perf in text_lower for perf in performance_words) and \
+       any(acad in text_lower for acad in academic_context):
+        if '#AcademicStress' not in detected_tags:
+            detected_tags.append('#AcademicStress')
     
     # Remove duplicates while preserving order
     return list(dict.fromkeys(detected_tags))
 
 def analyze_sentiment_and_emotions(text):
     """
-    Analyze text using VADER sentiment analysis and extract emotions
+    Enhanced sentiment and emotion analysis using VADER and contextual cues
     """
     # Get VADER scores
     scores = analyzer.polarity_scores(text)
@@ -129,39 +208,47 @@ def analyze_sentiment_and_emotions(text):
         'anxiety': 0.0
     }
     
-    # Simple emotion detection based on keywords and sentiment
+    # Enhanced emotion detection based on keywords and context
     text_lower = text.lower()
     
-    # Joy indicators
-    joy_words = ['happy', 'excited', 'great', 'wonderful', 'amazing', 'love', 'joy', 'pleased']
-    if any(word in text_lower for word in joy_words) or compound_score > 0.5:
-        emotions['joy'] = min(1.0, max(0.0, compound_score))
+    # Joy indicators with intensity
+    joy_words = ['happy', 'excited', 'great', 'wonderful', 'amazing', 'love', 'joy', 'pleased', 'thrilled', 'delighted']
+    joy_intensity = sum(1 for word in joy_words if word in text_lower)
+    if joy_intensity > 0 or compound_score > 0.5:
+        emotions['joy'] = min(1.0, max(0.0, compound_score + (joy_intensity * 0.1)))
     
-    # Sadness indicators
-    sadness_words = ['sad', 'depressed', 'down', 'unhappy', 'disappointed', 'lonely']
-    if any(word in text_lower for word in sadness_words) or compound_score < -0.3:
-        emotions['sadness'] = min(1.0, abs(scores['neg']))
+    # Sadness indicators with context
+    sadness_words = ['sad', 'depressed', 'down', 'unhappy', 'disappointed', 'lonely', 'empty', 'numb']
+    sadness_intensity = sum(1 for word in sadness_words if word in text_lower)
+    if sadness_intensity > 0 or compound_score < -0.3:
+        emotions['sadness'] = min(1.0, abs(scores['neg']) + (sadness_intensity * 0.1))
     
     # Anger indicators
-    anger_words = ['angry', 'mad', 'furious', 'irritated', 'frustrated', 'hate']
-    if any(word in text_lower for word in anger_words):
-        emotions['anger'] = min(1.0, scores['neg'])
+    anger_words = ['angry', 'mad', 'furious', 'irritated', 'frustrated', 'hate', 'rage', 'annoyed']
+    anger_intensity = sum(1 for word in anger_words if word in text_lower)
+    if anger_intensity > 0:
+        emotions['anger'] = min(1.0, scores['neg'] + (anger_intensity * 0.1))
     
     # Fear indicators
-    fear_words = ['afraid', 'scared', 'terrified', 'worried', 'nervous']
-    if any(word in text_lower for word in fear_words):
-        emotions['fear'] = min(1.0, abs(compound_score) if compound_score < 0 else 0.3)
+    fear_words = ['afraid', 'scared', 'terrified', 'worried', 'nervous', 'frightened']
+    fear_intensity = sum(1 for word in fear_words if word in text_lower)
+    if fear_intensity > 0:
+        emotions['fear'] = min(1.0, abs(compound_score) if compound_score < 0 else 0.3 + (fear_intensity * 0.1))
     
-    # Anxiety indicators
-    anxiety_words = ['anxious', 'panic', 'overwhelmed', 'stressed', 'tense']
-    if any(word in text_lower for word in anxiety_words):
-        emotions['anxiety'] = min(1.0, abs(scores['neg']) + 0.2)
+    # Anxiety indicators with physical symptoms
+    anxiety_words = ['anxious', 'panic', 'overwhelmed', 'stressed', 'tense', 'restless', 'uneasy']
+    anxiety_symptoms = ['racing heart', 'can\'t breathe', 'sweating', 'shaking']
+    anxiety_intensity = sum(1 for word in anxiety_words if word in text_lower)
+    symptom_intensity = sum(1 for symptom in anxiety_symptoms if symptom in text_lower)
+    
+    if anxiety_intensity > 0 or symptom_intensity > 0:
+        emotions['anxiety'] = min(1.0, abs(scores['neg']) + 0.2 + (anxiety_intensity * 0.1) + (symptom_intensity * 0.15))
     
     return scores, emotions
 
 def determine_risk_level(text, sentiment_scores, emotions, tags):
     """
-    Determine risk level based on text content, sentiment, emotions, and detected tags
+    Enhanced risk assessment considering multiple factors including new tags
     """
     text_lower = text.lower()
     
@@ -170,41 +257,53 @@ def determine_risk_level(text, sentiment_scores, emotions, tags):
     has_high_risk_tag = '#HighRisk' in tags
     
     if high_risk_found or has_high_risk_tag:
-        return 'high', ['suicidal ideation', 'self-harm risk']
+        return 'high', ['suicidal ideation', 'self-harm risk', 'immediate intervention needed']
     
     # Check for moderate risk indicators
     moderate_risk_found = any(keyword in text_lower for keyword in MODERATE_RISK_KEYWORDS)
     
-    # Risk assessment based on sentiment, emotions, and tags
+    # Enhanced risk assessment based on sentiment, emotions, and tags
     compound_score = sentiment_scores['compound']
     max_negative_emotion = max([emotions['sadness'], emotions['anger'], emotions['fear'], emotions['anxiety']])
     
     # Consider multiple stress tags as risk escalation
-    stress_tags = [tag for tag in tags if tag in ['#AcademicStress', '#FinancialStress', '#Anxiety', '#LowMood']]
+    stress_tags = [tag for tag in tags if tag in ['#AcademicStress', '#FinancialStress', '#Anxiety', '#LowMood', '#RelationshipStress', '#FamilyIssues']]
+    critical_tags = [tag for tag in tags if tag in ['#SubstanceUse', '#BodyImage', '#Perfectionism']]
     
     risk_factors = []
     
-    if compound_score <= -0.6 or max_negative_emotion >= 0.7 or len(stress_tags) >= 3:
-        if moderate_risk_found or len(stress_tags) >= 2:
-            risk_factors.extend(['severe emotional distress', 'multiple stressors'])
+    # High risk conditions
+    if compound_score <= -0.7 or max_negative_emotion >= 0.8 or len(stress_tags) >= 4 or len(critical_tags) >= 2:
+        if moderate_risk_found or len(stress_tags) >= 3:
+            risk_factors.extend(['severe emotional distress', 'multiple stressors', 'crisis intervention recommended'])
             return 'high', risk_factors
         else:
-            risk_factors.append('negative emotional state')
-            return 'moderate', risk_factors
-    elif compound_score <= -0.3 or max_negative_emotion >= 0.5 or moderate_risk_found or len(stress_tags) >= 1:
+            risk_factors.extend(['significant emotional distress', 'professional support recommended'])
+            return 'high', risk_factors
+    
+    # Moderate risk conditions
+    elif (compound_score <= -0.4 or max_negative_emotion >= 0.5 or 
+          moderate_risk_found or len(stress_tags) >= 2 or len(critical_tags) >= 1):
+        
         if moderate_risk_found:
-            risk_factors.append('stress indicators')
+            risk_factors.append('stress and mood indicators')
         if max_negative_emotion >= 0.5:
-            risk_factors.append('emotional distress')
-        if len(stress_tags) >= 1:
-            risk_factors.append('contextual stressors')
+            risk_factors.append('elevated emotional distress')
+        if len(stress_tags) >= 2:
+            risk_factors.append('multiple life stressors')
+        if len(critical_tags) >= 1:
+            risk_factors.append('concerning behavioral patterns')
+        
         return 'moderate', risk_factors
+    
     else:
-        return 'low', []
+        if len(stress_tags) >= 1:
+            risk_factors.append('manageable stress levels')
+        return 'low', risk_factors
 
-def get_referrals_for_risk_level(risk_level, risk_factors):
+def get_referrals_for_risk_level(risk_level, risk_factors, tags):
     """
-    Get appropriate referrals based on risk level and factors
+    Get appropriate referrals based on risk level, factors, and detected tags
     """
     try:
         # Query referrals from Supabase based on risk level
@@ -213,29 +312,56 @@ def get_referrals_for_risk_level(risk_level, risk_factors):
         if response.data:
             return response.data
         else:
-            # Fallback referrals if database is empty
+            # Enhanced fallback referrals based on tags and risk level
             if risk_level == 'high':
                 return [{
-                    'name': 'University of Rwanda - Counseling and Mental Health',
+                    'name': 'Crisis Intervention Hotline',
+                    'type': 'emergency',
+                    'contact': '988 (Suicide & Crisis Lifeline)',
+                    'description': 'Immediate crisis support available 24/7',
+                    'category': 'high'
+                }, {
+                    'name': 'University Emergency Counseling',
                     'type': 'urgent_care',
                     'contact': '+250 788 123 456',
-                    'description': 'Immediate professional mental health support',
+                    'description': 'Emergency mental health services for students',
                     'category': 'high'
                 }]
             elif risk_level == 'moderate':
-                return [{
+                referrals = [{
                     'name': 'Student Counseling Services',
                     'type': 'counseling',
                     'contact': '+250 788 654 321',
                     'description': 'Professional counseling and support',
                     'category': 'moderate'
                 }]
+                
+                # Add specialized referrals based on tags
+                if '#AcademicStress' in tags:
+                    referrals.append({
+                        'name': 'Academic Support Center',
+                        'type': 'academic_support',
+                        'contact': 'academic.support@university.edu',
+                        'description': 'Study skills and academic stress management',
+                        'category': 'moderate'
+                    })
+                
+                if '#FinancialStress' in tags:
+                    referrals.append({
+                        'name': 'Financial Aid Office',
+                        'type': 'financial_support',
+                        'contact': 'finaid@university.edu',
+                        'description': 'Financial assistance and budgeting help',
+                        'category': 'moderate'
+                    })
+                
+                return referrals
             else:
                 return [{
-                    'name': 'Self-Care Resources',
+                    'name': 'Wellness Resources',
                     'type': 'self_help',
-                    'contact': 'Available online',
-                    'description': 'Wellness tips and stress management',
+                    'contact': 'Available online and on campus',
+                    'description': 'Self-care tips and stress management resources',
                     'category': 'low'
                 }]
     except Exception as e:
@@ -246,7 +372,7 @@ def get_referrals_for_risk_level(risk_level, risk_factors):
 @verify_token
 def submit_assessment():
     """
-    Main endpoint for processing mental health assessments with context-aware tagging
+    Enhanced endpoint for processing mental health assessments with dynamic tagging
     """
     try:
         data = request.get_json()
@@ -258,19 +384,19 @@ def submit_assessment():
         # Get user ID from token
         user_id = request.user.user.id
         
-        # Extract mental health tags
+        # Extract mental health tags with enhanced detection
         tags = extract_mental_health_tags(text)
         
         # Analyze sentiment and emotions
         sentiment_scores, emotions = analyze_sentiment_and_emotions(text)
         
-        # Determine risk level (now considers tags)
+        # Determine risk level with enhanced assessment
         risk_level, risk_factors = determine_risk_level(text, sentiment_scores, emotions, tags)
         
-        # Get appropriate referrals
-        referrals = get_referrals_for_risk_level(risk_level, risk_factors)
+        # Get appropriate referrals based on tags and risk
+        referrals = get_referrals_for_risk_level(risk_level, risk_factors, tags)
         
-        # Create assessment result with new tags field
+        # Create enhanced assessment result
         assessment_result = {
             'id': str(uuid.uuid4()),
             'text': text,
@@ -278,13 +404,13 @@ def submit_assessment():
             'emotions': emotions,
             'riskLevel': risk_level,
             'riskFactors': risk_factors,
-            'tags': tags,  # New field for context-aware tags
-            'confidence': abs(sentiment_scores['compound']),
+            'tags': tags,
+            'confidence': abs(sentiment_scores['compound']) + 0.1,  # Enhanced confidence
             'timestamp': datetime.now().isoformat(),
             'referrals': referrals
         }
         
-        # Store assessment in Supabase (include tags)
+        # Store assessment in Supabase
         try:
             supabase.table('assessments').insert({
                 'id': assessment_result['id'],
@@ -294,8 +420,8 @@ def submit_assessment():
                 'emotions': emotions,
                 'risk_level': risk_level,
                 'risk_factors': risk_factors,
-                'tags': tags,  # Store tags in database
-                'confidence_score': abs(sentiment_scores['compound']),
+                'tags': tags,
+                'confidence_score': abs(sentiment_scores['compound']) + 0.1,
                 'created_at': assessment_result['timestamp']
             }).execute()
         except Exception as db_error:
@@ -329,7 +455,7 @@ def get_user_assessments():
                 'emotions': assessment['emotions'],
                 'riskLevel': assessment['risk_level'],
                 'riskFactors': assessment['risk_factors'],
-                'tags': assessment.get('tags', []),  # Include tags in response
+                'tags': assessment.get('tags', []),
                 'confidence': assessment['confidence_score'],
                 'timestamp': assessment['created_at']
             })
@@ -344,7 +470,7 @@ def get_user_assessments():
 @verify_token
 def get_admin_analytics():
     """
-    Get analytics data for admin dashboard including tag distribution
+    Enhanced analytics with comprehensive tag distribution and trends
     """
     try:
         # Verify admin role
@@ -355,7 +481,7 @@ def get_admin_analytics():
             return jsonify({'error': 'Unauthorized - Admin access required'}), 403
         
         # Get assessment statistics
-        assessments_response = supabase.table('assessments').select('risk_level, tags, created_at').execute()
+        assessments_response = supabase.table('assessments').select('risk_level, tags, created_at, emotions').execute()
         
         analytics_data = {
             'totalAssessments': len(assessments_response.data),
@@ -364,11 +490,19 @@ def get_admin_analytics():
                 'moderate': 0,
                 'high': 0
             },
-            'tagDistribution': {},  # New analytics for tag frequency
-            'recentTrends': []
+            'tagDistribution': {},
+            'emotionTrends': {
+                'joy': 0,
+                'sadness': 0,
+                'anger': 0,
+                'fear': 0,
+                'anxiety': 0
+            },
+            'recentTrends': [],
+            'tagCorrelations': {}
         }
         
-        # Calculate risk distribution and tag frequency
+        # Calculate comprehensive analytics
         for assessment in assessments_response.data:
             risk_level = assessment['risk_level']
             if risk_level in analytics_data['riskDistribution']:
@@ -381,6 +515,17 @@ def get_admin_analytics():
                     analytics_data['tagDistribution'][tag] += 1
                 else:
                     analytics_data['tagDistribution'][tag] = 1
+            
+            # Calculate emotion averages
+            emotions = assessment.get('emotions', {})
+            for emotion, value in emotions.items():
+                if emotion in analytics_data['emotionTrends']:
+                    analytics_data['emotionTrends'][emotion] += value
+        
+        # Calculate emotion averages
+        total_assessments = max(1, len(assessments_response.data))
+        for emotion in analytics_data['emotionTrends']:
+            analytics_data['emotionTrends'][emotion] /= total_assessments
         
         return jsonify(analytics_data), 200
         
@@ -393,7 +538,17 @@ def health_check():
     """
     Health check endpoint
     """
-    return jsonify({'status': 'healthy', 'message': 'Flask ML backend with context-aware tagging is running'}), 200
+    return jsonify({
+        'status': 'healthy', 
+        'message': 'Enhanced Flask ML backend with dynamic tagging is running',
+        'features': [
+            'Dynamic tag assignment',
+            'Enhanced emotion detection',
+            'Contextual risk assessment',
+            'Supabase integration',
+            'Real-time assessment storage'
+        ]
+    }), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

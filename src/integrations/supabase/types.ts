@@ -11,33 +11,39 @@ export type Database = {
     Tables: {
       assessments: {
         Row: {
-          answers: Json | null
-          anxiety_score: number
+          confidence_score: number
           created_at: string
-          depression_score: number
+          emotions: Json
           id: string
-          recommendations: string | null
-          stress_score: number
+          risk_factors: string[] | null
+          risk_level: string
+          sentiment_score: number
+          tags: string[] | null
+          text_input: string
           user_id: string
         }
         Insert: {
-          answers?: Json | null
-          anxiety_score: number
+          confidence_score?: number
           created_at?: string
-          depression_score: number
+          emotions?: Json
           id?: string
-          recommendations?: string | null
-          stress_score: number
+          risk_factors?: string[] | null
+          risk_level?: string
+          sentiment_score?: number
+          tags?: string[] | null
+          text_input?: string
           user_id: string
         }
         Update: {
-          answers?: Json | null
-          anxiety_score?: number
+          confidence_score?: number
           created_at?: string
-          depression_score?: number
+          emotions?: Json
           id?: string
-          recommendations?: string | null
-          stress_score?: number
+          risk_factors?: string[] | null
+          risk_level?: string
+          sentiment_score?: number
+          tags?: string[] | null
+          text_input?: string
           user_id?: string
         }
         Relationships: []
