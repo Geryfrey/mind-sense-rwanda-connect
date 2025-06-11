@@ -289,5 +289,3 @@ export const RequireAuth: React.FC<{
 };
 
 export default AuthProvider;
-
-}
