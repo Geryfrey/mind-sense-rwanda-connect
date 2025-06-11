@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useML } from "@/context/MLContext";
 import { useAuth } from "@/context/AuthContext";
 import StudentSidebar from "@/components/student/StudentSidebar";
@@ -471,6 +472,12 @@ const StudentSettings: React.FC = () => (
 const StudentDashboardPage: React.FC = () => {
   const { isLoading } = useML();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  
+  // Add debugging for route changes
+  useEffect(() => {
+    console.log("Current route:", location.pathname);
+  }, [location.pathname]);
   
   return (
     <div className="flex h-screen bg-gray-50">
