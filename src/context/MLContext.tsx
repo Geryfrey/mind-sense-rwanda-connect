@@ -243,16 +243,24 @@ export const MLProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         if (error) {
           console.error('Error fetching from Supabase:', error);
         } else {
-          // Transform Supabase data to match our interface
-          const formattedHistory = data.map(assessment => ({
+          // Transform Supabase data to match our interface with proper type conversion
+          const formattedHistory: AssessmentResult[] = data.map(assessment => ({
             id: assessment.id,
             text: assessment.text_input,
-            sentiment: assessment.sentiment_score,
-            emotions: assessment.emotions,
-            riskLevel: assessment.risk_level,
-            riskFactors: assessment.risk_factors,
-            tags: assessment.tags,
-            confidence: assessment.confidence_score,
+            sentiment: Number(assessment.sentiment_score),
+            emotions: typeof assessment.emotions === 'object' && assessment.emotions !== null
+              ? {
+                  joy: Number((assessment.emotions as any).joy || 0),
+                  sadness: Number((assessment.emotions as any).sadness || 0),
+                  anger: Number((assessment.emotions as any).anger || 0),
+                  fear: Number((assessment.emotions as any).fear || 0),
+                  anxiety: Number((assessment.emotions as any).anxiety || 0),
+                }
+              : { joy: 0, sadness: 0, anger: 0, fear: 0, anxiety: 0 },
+            riskLevel: (assessment.risk_level as 'low' | 'moderate' | 'high') || 'low',
+            riskFactors: assessment.risk_factors || [],
+            tags: assessment.tags || [],
+            confidence: Number(assessment.confidence_score),
             timestamp: assessment.created_at,
             referrals: [],
           }));
@@ -271,15 +279,23 @@ export const MLProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           .order('created_at', { ascending: false });
 
         if (!error && data) {
-          const formattedHistory = data.map(assessment => ({
+          const formattedHistory: AssessmentResult[] = data.map(assessment => ({
             id: assessment.id,
             text: assessment.text_input,
-            sentiment: assessment.sentiment_score,
-            emotions: assessment.emotions,
-            riskLevel: assessment.risk_level,
-            riskFactors: assessment.risk_factors,
-            tags: assessment.tags,
-            confidence: assessment.confidence_score,
+            sentiment: Number(assessment.sentiment_score),
+            emotions: typeof assessment.emotions === 'object' && assessment.emotions !== null
+              ? {
+                  joy: Number((assessment.emotions as any).joy || 0),
+                  sadness: Number((assessment.emotions as any).sadness || 0),
+                  anger: Number((assessment.emotions as any).anger || 0),
+                  fear: Number((assessment.emotions as any).fear || 0),
+                  anxiety: Number((assessment.emotions as any).anxiety || 0),
+                }
+              : { joy: 0, sadness: 0, anger: 0, fear: 0, anxiety: 0 },
+            riskLevel: (assessment.risk_level as 'low' | 'moderate' | 'high') || 'low',
+            riskFactors: assessment.risk_factors || [],
+            tags: assessment.tags || [],
+            confidence: Number(assessment.confidence_score),
             timestamp: assessment.created_at,
             referrals: [],
           }));

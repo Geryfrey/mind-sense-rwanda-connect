@@ -12,9 +12,10 @@ type TimeframeType = "today" | "week" | "month" | "quarter" | "year" | "all";
 interface AssessmentData {
   id: string;
   user_id: string;
-  stress_score: number;
-  anxiety_score: number;
-  depression_score: number;
+  text_input: string;
+  sentiment_score: number;
+  risk_level: string;
+  tags: string[] | null;
   created_at: string;
   profiles?: {
     reg_number: string | null;
@@ -68,10 +69,10 @@ const AdminExportReports: React.FC = () => {
     try {
       const { start, end } = getDateRange(timeframe);
       
-      // First get assessments
+      // First get assessments with new schema
       let assessmentQuery = supabase
         .from('assessments')
-        .select('id, user_id, stress_score, anxiety_score, depression_score, created_at')
+        .select('id, user_id, text_input, sentiment_score, risk_level, tags, created_at')
         .order('created_at', { ascending: false });
 
       if (timeframe !== "all") {
@@ -139,9 +140,10 @@ const AdminExportReports: React.FC = () => {
         "Student Name",
         "Registration Number",
         "Email",
-        "Stress Score",
-        "Anxiety Score",
-        "Depression Score",
+        "Text Input",
+        "Sentiment Score",
+        "Risk Level",
+        "Tags",
         "Date",
         "Time"
       ];
@@ -151,9 +153,10 @@ const AdminExportReports: React.FC = () => {
         assessment.profiles?.reg_number || assessment.profiles?.email || "N/A",
         assessment.profiles?.reg_number || "N/A",
         assessment.profiles?.email || "N/A",
-        assessment.stress_score,
-        assessment.anxiety_score,
-        assessment.depression_score,
+        assessment.text_input.replace(/"/g, '""'), // Escape quotes in text
+        assessment.sentiment_score,
+        assessment.risk_level,
+        assessment.tags?.join(", ") || "N/A",
         new Date(assessment.created_at).toLocaleDateString(),
         new Date(assessment.created_at).toLocaleTimeString()
       ]);
@@ -191,11 +194,14 @@ const AdminExportReports: React.FC = () => {
   const getSummaryStats = () => {
     if (assessments.length === 0) return null;
 
-    const avgStress = assessments.reduce((sum, a) => sum + a.stress_score, 0) / assessments.length;
-    const avgAnxiety = assessments.reduce((sum, a) => sum + a.anxiety_score, 0) / assessments.length;
-    const avgDepression = assessments.reduce((sum, a) => sum + a.depression_score, 0) / assessments.length;
+    const avgSentiment = assessments.reduce((sum, a) => sum + a.sentiment_score, 0) / assessments.length;
+    const riskCounts = {
+      low: assessments.filter(a => a.risk_level === 'low').length,
+      moderate: assessments.filter(a => a.risk_level === 'moderate').length,
+      high: assessments.filter(a => a.risk_level === 'high').length,
+    };
 
-    return { avgStress, avgAnxiety, avgDepression };
+    return { avgSentiment, riskCounts };
   };
 
   const summaryStats = getSummaryStats();
@@ -253,38 +259,38 @@ const AdminExportReports: React.FC = () => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-2">
+                <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 font-semibold">S</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Avg Sentiment</p>
+                  <p className="text-2xl font-bold">{summaryStats.avgSentiment.toFixed(2)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 font-semibold">L</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Low Risk</p>
+                  <p className="text-2xl font-bold">{summaryStats.riskCounts.low}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2">
                 <div className="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center">
-                  <span className="text-red-600 font-semibold">S</span>
+                  <span className="text-red-600 font-semibold">H</span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Avg Stress</p>
-                  <p className="text-2xl font-bold">{summaryStats.avgStress.toFixed(1)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <span className="text-yellow-600 font-semibold">A</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Avg Anxiety</p>
-                  <p className="text-2xl font-bold">{summaryStats.avgAnxiety.toFixed(1)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 font-semibold">D</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Avg Depression</p>
-                  <p className="text-2xl font-bold">{summaryStats.avgDepression.toFixed(1)}</p>
+                  <p className="text-sm font-medium text-gray-600">High Risk</p>
+                  <p className="text-2xl font-bold">{summaryStats.riskCounts.high}</p>
                 </div>
               </div>
             </CardContent>
@@ -326,9 +332,9 @@ const AdminExportReports: React.FC = () => {
                   <tr className="border-b">
                     <th className="text-left p-2">Student</th>
                     <th className="text-left p-2">Reg Number</th>
-                    <th className="text-left p-2">Stress</th>
-                    <th className="text-left p-2">Anxiety</th>
-                    <th className="text-left p-2">Depression</th>
+                    <th className="text-left p-2">Sentiment</th>
+                    <th className="text-left p-2">Risk Level</th>
+                    <th className="text-left p-2">Tags</th>
                     <th className="text-left p-2">Date</th>
                   </tr>
                 </thead>
@@ -337,9 +343,17 @@ const AdminExportReports: React.FC = () => {
                     <tr key={assessment.id} className="border-b">
                       <td className="p-2">{assessment.profiles?.reg_number || assessment.profiles?.email || "N/A"}</td>
                       <td className="p-2">{assessment.profiles?.reg_number || "N/A"}</td>
-                      <td className="p-2">{assessment.stress_score}</td>
-                      <td className="p-2">{assessment.anxiety_score}</td>
-                      <td className="p-2">{assessment.depression_score}</td>
+                      <td className="p-2">{assessment.sentiment_score.toFixed(2)}</td>
+                      <td className="p-2">
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          assessment.risk_level === 'high' ? 'bg-red-100 text-red-800' :
+                          assessment.risk_level === 'moderate' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {assessment.risk_level}
+                        </span>
+                      </td>
+                      <td className="p-2">{assessment.tags?.slice(0, 2).join(", ") || "N/A"}</td>
                       <td className="p-2">{new Date(assessment.created_at).toLocaleDateString()}</td>
                     </tr>
                   ))}
